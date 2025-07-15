@@ -38,6 +38,8 @@
           detailed inside the Collision Sys description
           (from line 86).
       Fourth feature: making a cool and practical tilemap.
+        Update: the map for test was 100% loaded and flipped. 
+        Now I'll have to put the objects on.
 
       Written by DDey - Beginning of July 2025.
       Expanded & Edited - July 13, 2025.
@@ -51,6 +53,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <tmx.h>
 // #define MAX_VERTICES 3
 // #define DEG2RAD(deg) ((deg)*ALLEGRO_PI / 180.0f)
 
@@ -84,13 +87,75 @@ SpriteSheetInfo ent; // entity
 
 // ======================================================
 //
+//     TILED MAP SYS
+//
+// ======================================================
+ALLEGRO_BITMAP *tileset = NULL;
+
+void DrawMapLayer(tmx_map *map, tmx_layer *layer) {
+  if (layer->type != L_LAYER)
+    return;
+
+  for (unsigned y = 0; y < map->height; y++) {
+    for (unsigned x = 0; x < map->width; x++) {
+      unsigned gid = layer->content.gids[y * map->width + x];
+      if (gid == 0)
+        continue; // GID 0 = no tile
+
+      const tmx_tile *tile = tmx_get_tile(map, gid);
+      if (!tile)
+        continue;
+
+      tmx_tileset *ts = tile->tileset;
+
+      // Tile position in tileset
+      int tw = ts->tile_width;
+      int th = ts->tile_height;
+      int margin = ts->margin;
+      int spacing = ts->spacing;
+      int tile_id = tile->id;
+      float offset_x = 0;
+      float offset_y = -60;
+
+      int columns = (al_get_bitmap_width(tileset) - 2 * margin + spacing) /
+                    (tw + spacing);
+      int sx = margin + (tile_id % columns) * (tw + spacing);
+      int sy = margin + (tile_id / columns) * (th + spacing);
+
+      al_draw_bitmap_region(tileset, sx, sy, tw, th, x * tw + offset_x,
+                            y * th + offset_y, 0);
+    }
+  }
+}
+
+void LoadnDrawMap(const char *map_path) {
+  tmx_map *map = tmx_load(map_path);
+  if (!map) {
+    fprintf(stderr, "Erro ao carregar mapa %s\n", tmx_strerr());
+    return;
+  }
+
+  tmx_layer *layer = map->ly_head;
+  while (layer) {
+    if (layer->visible) {
+      DrawMapLayer(map, layer);
+    }
+    layer = layer->next;
+  }
+
+  tmx_map_free(map);
+}
+
+
+// ======================================================
+//
 //     COLLISION SYS
 //
 //     RectSqColl() creates either rectangular or square
 //     collision. It's useful to wall collisions, too.
 //     CircleReaderColl() focus on circular collison.
 //
-//     About abandoned functions:
+//     About absence of functions for polygonal collision:
 //       My personal objective to make an isometric game
 //       as a first project is far away due to my program-
 //       ming skills. Then I'm following my brother's
@@ -119,68 +184,6 @@ bool CircleColl(float cx1, float cy1, float r1, float cx2, float cy2,
   float rsum = r1 + r2; // player_ray (aka frame_w) + circle_ray
   return (dx * dx + dy * dy) < (rsum * rsum);
 }
-
-// bool PolygonColl(float px, float py, float *vx, float *vy, int nverts) {
-//   bool inside = false;
-//
-//   // It range each poligon's side (linking point i to the point j,
-//   // the previous one)
-//   for (int i = 0, j = nverts - 1; i < nverts; j = i++) {
-//     // It check if the horizontal line which pass through px & py
-//     // will intersect the poligon's i-j side
-//     bool intersect =
-//         ((vy[i] > py) != (vy[j] > py)) &&
-//         (px < (vx[j] - vx[i]) * (py - vy[i]) / (vy[j] - vy[i]) + vx[i]);
-//     // If it has intersected, invert the state (in/out)
-//     if (intersect)
-//       inside = !inside;
-//   }
-//   return inside;
-// }
-
-// bool RotatedRectColl(float px, float py, float cx, float cy, // Rectangle
-// center
-//                      float w, float h, // Rectangle width and height
-//                      float angle_rad) {
-//   // Translate the point to the rectangle's local space
-//   float dx = px - cx;
-//   float dy = py - cy;
-//
-//   // Applies reverse rotation in the point, transforming it
-//   // to the rectangle's space non-rotated
-//   float local_x = dx * cos(-angle_rad) - dy * sin(-angle_rad);
-//   float local_y = dx * sin(-angle_rad) + dy * cos(-angle_rad);
-//
-//   // Check if it's inside rectangle aligned local (aka AABB)
-//   return fabs(local_x) <= w / 2 && fabs(local_y) <= h / 2;
-// }
-//
-// void DrawRotatedRect(float cx, float cy, float w, float h, float angle_rad,
-//                      ALLEGRO_COLOR color) {
-//   float hw = w / 2.0f;
-//   float hh = h / 2.0f;
-//
-//   float cos_a = cos(angle_rad);
-//   float sin_a = sin(angle_rad);
-//
-//   // Define the 4 rotated vertices around the center
-//   float x1 = cx + (-hw * cos_a - -hh * sin_a);
-//   float y1 = cy + (-hw * sin_a + -hh * cos_a);
-//
-//   float x2 = cx + (hw * cos_a - -hh * sin_a);
-//   float y2 = cy + (hw * sin_a + -hh * cos_a);
-//
-//   float x3 = cx + (hw * cos_a - hh * sin_a);
-//   float y3 = cy + (hw * sin_a + hh * cos_a);
-//
-//   float x4 = cx + (-hw * cos_a - hh * sin_a);
-//   float y4 = cy + (-hw * sin_a + hh * cos_a);
-//
-//   al_draw_line(x1, y1, x2, y2, color, 2.0);
-//   al_draw_line(x2, y2, x3, y3, color, 2.0);
-//   al_draw_line(x3, y3, x4, y4, color, 2.0);
-//   al_draw_line(x4, y4, x1, y1, color, 2.0);
-// }
 
 // ======================================================
 //
@@ -387,9 +390,13 @@ int main() {
     BanditMove(keys, &spr.px, &spr.py, sp);
     BanditDirection(keys, &spr.frame_w, &spr.frame_h);
 
+    al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+    tileset = al_load_bitmap("tiles/avenue_tileset.png");
+
     if (redraw && al_is_event_queue_empty(queue)) {
       al_set_target_backbuffer(disp);
       al_clear_to_color(al_map_rgb(0, 0, 0));
+      LoadnDrawMap("tiles/closedstreet_map.tmx");
       al_draw_rectangle(ent.rx, ent.ry, ent.rw + ent.rx, ent.rh + ent.ry,
                         al_map_rgb(255, 0, 0), 5.0);
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
@@ -400,6 +407,7 @@ int main() {
   }
 
   al_destroy_display(disp);
+  al_destroy_bitmap(tileset);
   BitmapExplode();
   al_destroy_event_queue(queue);
   al_destroy_timer(timer);
