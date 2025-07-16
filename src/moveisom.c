@@ -38,15 +38,19 @@
           detailed inside the Collision Sys description
           (from line 86).
       Fourth feature: making a cool and practical tilemap.
-        Update: the map for test was 100% loaded and flipped. 
+        Update: the map for test was 100% loaded and flipped.
         Now I'll have to put the objects on.
+        Update 2: map render is working well, though the map
+        objects aren't flipping appropriately. Maybe I'll need
+        to remake another tilemap to solve that.
 
       Written by DDey - Beginning of July 2025.
-      Expanded & Edited - July 13, 2025.
+      Expanded & Edited - July 16, 2025.
 */
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/keyboard.h>
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -54,12 +58,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <tmx.h>
-// #define MAX_VERTICES 3
-// #define DEG2RAD(deg) ((deg)*ALLEGRO_PI / 180.0f)
-
-// float vx[MAX_VERTICES] = {200, 250, 300};
-// float vy[MAX_VERTICES] = {200, 300, 200};
+#define LINE_THICKNESS 2.5f
 static int disp_w = 640, disp_h = 400;
+static tmx_map *map = NULL;
 
 // ======================================================
 //
@@ -88,64 +89,146 @@ SpriteSheetInfo ent; // entity
 // ======================================================
 //
 //     TILED MAP SYS
+//     The big part of this code is clipped from libTMX's
+//     example given in their website, so the descriptions
+//     ahead are poor and simple enoug just to explain as
+//     short as possible.
+//
+//     AllegTexLoader() callback to load image through
+//     the lib.
+//     AllegTexFree() callback to free texture.
+//
+//     IntToAllegColor() convert Tiled color to Allegro.
+//
+//     DrawImgLayer() draw a full-screen image layer.
+//     DrawTile() draw a specific one.
+//     DrawTileLayer() is pretty obvious, isn't it?
+//     DrawPolyline() draw lines/polygons of objects.
+//     DrawPolygon() is obvious as fuck.
+//     DrawObjects() is another from obvious' family.
+//     DrawAllLayers() is obvious, too.
+//
+//     RenderMap() put all this stuff inside the buffer.
 //
 // ======================================================
-ALLEGRO_BITMAP *tileset = NULL;
+void *AllegTexLoader(const char *path) {
+  ALLEGRO_PATH *alpath = al_create_path(path);
+  if (!alpath)
+    return NULL;
+  al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ANY_WITH_ALPHA);
+  ALLEGRO_BITMAP *bmp =
+      al_load_bitmap(al_path_cstr(alpath, ALLEGRO_NATIVE_PATH_SEP));
+  al_destroy_path(alpath);
+  return (void *)bmp;
+}
+void AllegTexFree(void *ptr) { al_destroy_bitmap((ALLEGRO_BITMAP *)ptr); }
 
-void DrawMapLayer(tmx_map *map, tmx_layer *layer) {
-  if (layer->type != L_LAYER)
-    return;
+ALLEGRO_COLOR IntToAllegColor(int color) {
+  tmx_col_floats f = tmx_col_to_floats(color);
+  return *((ALLEGRO_COLOR *)&f);
+}
 
-  for (unsigned y = 0; y < map->height; y++) {
-    for (unsigned x = 0; x < map->width; x++) {
-      unsigned gid = layer->content.gids[y * map->width + x];
-      if (gid == 0)
-        continue; // GID 0 = no tile
+void DrawImgLayer(tmx_image *image) {
+  ALLEGRO_BITMAP *bmp = (ALLEGRO_BITMAP *)image->resource_image;
+  if (bmp)
+    al_draw_bitmap(bmp, 0, 0, 0);
+}
 
-      const tmx_tile *tile = tmx_get_tile(map, gid);
-      if (!tile)
-        continue;
+void DrawTile(void *image, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+              unsigned dx, unsigned dy, float opacity, unsigned flags) {
+  ALLEGRO_COLOR tint = al_map_rgba_f(opacity, opacity, opacity, opacity);
+  al_draw_tinted_bitmap_region((ALLEGRO_BITMAP *)image, tint, sx, sy, sw, sh,
+                               dx, dy, flags);
+}
 
-      tmx_tileset *ts = tile->tileset;
-
-      // Tile position in tileset
-      int tw = ts->tile_width;
-      int th = ts->tile_height;
-      int margin = ts->margin;
-      int spacing = ts->spacing;
-      int tile_id = tile->id;
-      float offset_x = 0;
-      float offset_y = -60;
-
-      int columns = (al_get_bitmap_width(tileset) - 2 * margin + spacing) /
-                    (tw + spacing);
-      int sx = margin + (tile_id % columns) * (tw + spacing);
-      int sy = margin + (tile_id / columns) * (th + spacing);
-
-      al_draw_bitmap_region(tileset, sx, sy, tw, th, x * tw + offset_x,
-                            y * th + offset_y, 0);
+void DrawTileLayer(tmx_map *map, tmx_layer *layer) {
+  unsigned mapw = map->width, maph = map->height;
+  for (unsigned i = 0; i < maph; i++) {
+    for (unsigned j = 0; j < mapw; j++) {
+      unsigned long index = i * mapw + j;
+      unsigned gid_raw = layer->content.gids[index];
+      unsigned gid = gid_raw & TMX_FLIP_BITS_REMOVAL;
+      if (map->tiles[gid]) {
+        tmx_tileset *ts = map->tiles[gid]->tileset;
+        tmx_image *im = map->tiles[gid]->image;
+        void *img = im ? im->resource_image : ts->image->resource_image;
+        unsigned sx = map->tiles[gid]->ul_x, sy = map->tiles[gid]->ul_y;
+        unsigned sw = ts->tile_width, sh = ts->tile_height;
+        float op = layer->opacity;
+        unsigned flags = gid_raw & ~TMX_FLIP_BITS_REMOVAL;
+        DrawTile(img, sx, sy, sw, sh, j * sw, i * sh, op, flags);
+      }
     }
   }
 }
 
-void LoadnDrawMap(const char *map_path) {
-  tmx_map *map = tmx_load(map_path);
-  if (!map) {
-    fprintf(stderr, "Erro ao carregar mapa %s\n", tmx_strerr());
-    return;
+void DrawPolyline(double **points, double x, double y, int count,
+                  ALLEGRO_COLOR color) {
+  for (int i = 1; i < count; i++) {
+    al_draw_line(x + points[i - 1][0], y + points[i - 1][1], x + points[i][0],
+                 y + points[i][1], color, LINE_THICKNESS);
   }
-
-  tmx_layer *layer = map->ly_head;
-  while (layer) {
-    if (layer->visible) {
-      DrawMapLayer(map, layer);
-    }
-    layer = layer->next;
-  }
-
-  tmx_map_free(map);
+}
+void DrawPolygon(double **points, double x, double y, int count,
+                 ALLEGRO_COLOR color) {
+  DrawPolyline(points, x, y, count, color);
+  if (count > 2)
+    al_draw_line(x + points[0][0], y + points[0][1], x + points[count - 1][0],
+                 y + points[count - 1][1], color, LINE_THICKNESS);
 }
 
+void DrawObjects(tmx_object_group *objgr) {
+  ALLEGRO_COLOR color = IntToAllegColor(objgr->color);
+  tmx_object *obj = objgr->head;
+  while (obj) {
+    if (obj->visible) {
+      switch (obj->obj_type) {
+      case OT_SQUARE:
+        al_draw_rectangle(obj->x, obj->y, obj->x + obj->width,
+                          obj->y + obj->height, color, LINE_THICKNESS);
+        break;
+      case OT_POLYGON:
+        DrawPolygon(obj->content.shape->points, obj->x, obj->y,
+                    obj->content.shape->points_len, color);
+        break;
+      case OT_POLYLINE:
+        DrawPolyline(obj->content.shape->points, obj->x, obj->y,
+                     obj->content.shape->points_len, color);
+        break;
+      case OT_ELLIPSE:
+        al_draw_ellipse(obj->x + obj->width / 2.0, obj->y + obj->height / 2.0,
+                        obj->width / 2.0, obj->height / 2.0, color,
+                        LINE_THICKNESS);
+        break;
+      default:
+        break;
+      }
+    }
+    obj = obj->next;
+  }
+}
+
+void DrawAllLayers(tmx_map *map, tmx_layer *layers) {
+  while (layers) {
+    if (layers->visible) {
+      if (layers->type == L_GROUP) {
+        DrawAllLayers(map, layers->content.group_head);
+      } else if (layers->type == L_IMAGE) {
+        DrawImgLayer(layers->content.image);
+      } else if (layers->type == L_LAYER) {
+        DrawTileLayer(map, layers);
+      } else if (layers->type == L_OBJGR) {
+        DrawObjects(layers->content.objgr);
+      }
+    }
+    layers = layers->next;
+  }
+}
+
+void RenderMap(tmx_map *m) {
+  al_clear_to_color(IntToAllegColor(m->backgroundcolor));
+  DrawAllLayers(m, m->ly_head);
+}
 
 // ======================================================
 //
@@ -153,6 +236,7 @@ void LoadnDrawMap(const char *map_path) {
 //
 //     RectSqColl() creates either rectangular or square
 //     collision. It's useful to wall collisions, too.
+//
 //     CircleReaderColl() focus on circular collison.
 //
 //     About absence of functions for polygonal collision:
@@ -190,8 +274,10 @@ bool CircleColl(float cx1, float cy1, float r1, float cx2, float cy2,
 //    SPRITESHEET
 //
 //    BitmapGrab() prepares all the bitmaps in the program.
+//
 //    BitmapInit() obviously activate them, loading the
 //    spritesheet and each sprite.
+//
 //    BitmapExplode() destroys everything loaded!
 //
 // ======================================================
@@ -223,8 +309,10 @@ void BitmapExplode() { al_destroy_bitmap(spr.sheet); }
 //    there's a warning: if the sprite is scaled, take
 //    care of remembering to adapt the code for its new
 //    size.
+//
 //    BanditMove() straight & diagonal movement logic and
 //    collision interaction trigger.
+//
 //    BanditDirection() move the character toward the side
 //    he/she's facing.
 //
@@ -264,7 +352,6 @@ void BanditDirection(bool keys[], int *fx, int *fy) {
     *fx = cols * 2, *fy = rows;
   }
 }
-
 void BanditMove(bool keys[], float *px, float *py, float sp) {
   int dx = 0, dy = 0;
   spr.px = *px;
@@ -327,11 +414,16 @@ void BanditMove(bool keys[], float *px, float *py, float sp) {
 //     Data crusher (al_destroy_...()).
 //
 // ======================================================
-int main() {
-  al_init();
-  al_init_image_addon();
-  al_install_keyboard();
-  al_init_primitives_addon();
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    fprintf(stderr, "Uso: %s arquivo_map.tmx\n", argv[0]);
+    return 1;
+  }
+  if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
+      !al_install_keyboard()) {
+    fprintf(stderr, "Falha ao inicializar Allegro\n");
+    return 1;
+  }
   BitmapInit();
 
   ALLEGRO_DISPLAY *disp = al_create_display(disp_w, disp_h);
@@ -387,16 +479,25 @@ int main() {
       redraw = true;
     }
 
+    // define callbacks para libTMX
+    tmx_img_load_func = AllegTexLoader;
+    tmx_img_free_func = AllegTexFree;
+
+    map = tmx_load(argv[1]);
+    if (!map) {
+      tmx_perror("Cannot load map");
+      return 1;
+    }
+
     BanditMove(keys, &spr.px, &spr.py, sp);
     BanditDirection(keys, &spr.frame_w, &spr.frame_h);
 
     al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
-    tileset = al_load_bitmap("tiles/avenue_tileset.png");
 
     if (redraw && al_is_event_queue_empty(queue)) {
       al_set_target_backbuffer(disp);
       al_clear_to_color(al_map_rgb(0, 0, 0));
-      LoadnDrawMap("tiles/closedstreet_map.tmx");
+      RenderMap(map);
       al_draw_rectangle(ent.rx, ent.ry, ent.rw + ent.rx, ent.rh + ent.ry,
                         al_map_rgb(255, 0, 0), 5.0);
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
@@ -407,7 +508,7 @@ int main() {
   }
 
   al_destroy_display(disp);
-  al_destroy_bitmap(tileset);
+  tmx_map_free(map);
   BitmapExplode();
   al_destroy_event_queue(queue);
   al_destroy_timer(timer);
