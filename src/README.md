@@ -3,9 +3,9 @@
 
 CyberSP_Project/
 ├── sprites
-│   ├── bandit_sprites
+│   └── bandit_sprites
 ├── npc_portraits
-│   ├── random_npcs
+│   └── random_npcs
 ├── tiles
 ├── src/
 │   ├── bitmap.c        # sprites domain
@@ -15,7 +15,7 @@ CyberSP_Project/
 │   ├── main.c          # game loop
 |   ├── main.h
 │   ├── tile_render.c   # libTMX map render
-│   ├── tile_render.h
+│   └── tile_render.h
 ├── Makefile
 └── README.md
 ```
