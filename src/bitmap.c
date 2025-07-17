@@ -8,6 +8,7 @@
 //**************************************************************************
 
 #include "bitmap.h"
+#include "collision.h"
 
 SpriteSheetInfo spr;
 SpriteSheetInfo ent;

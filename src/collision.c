@@ -7,7 +7,7 @@
 //**
 //**************************************************************************
 
-#include "collison.h"
+#include "collision.h"
 
 /*
       Radical change!

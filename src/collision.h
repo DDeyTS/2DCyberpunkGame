@@ -3,6 +3,8 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_primitives.h>
+#include <stdbool.h>
+#include <math.h>
 
 bool RectSqColl(float px, float py, int pw, int ph,
                 float wall_x1, float wall_y1,
