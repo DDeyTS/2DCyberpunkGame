@@ -4,4 +4,4 @@ Welcome to my private repository. Here you can read all the code of my first *C*
 
 The **CyberSP Project** initially was thought to be an *pseudoisometric computer game*, however, after I got a few headache with mathematic (which I'm a tremendously bad), it ended up becoming a *top-down computer game*. Whatever the point-to-view, this project follows some of my biggest personal inspirations (The Elders Scrolls III & IV, Diablo, Shadowrun (SNES)... and so on). It means a few mechanics or game design choices; and it doesn't I'll mix up everything from them and build a Frankstein, though.
 
-![Development pic](2DCyberpunkGame/[cybersp_dev.png](https://github.com/DDeyTS/2DCyberpunkGame/blob/633be37f880401a3346df178d21be114abb2bbe4/cybersp_dev.png))
+![Development pic](cybersp_dev.png)
