@@ -2,6 +2,11 @@
 **FILES TREE**
 
 CyberSP_Project/
+├── sprites
+│   ├── bandit_sprites
+├── npc_portraits
+│   ├── random_npcs
+├── tiles
 ├── src/
 │   ├── bitmap.c        # sprites domain
 │   ├── bitmap.h
