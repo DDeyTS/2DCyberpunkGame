@@ -1,6 +1,8 @@
-```
-**FILES TREE**
+# FILES TREE
 
+A map to travel through my own game files.
+
+```
 CyberSP_Project/
 ├── sprites
 │   └── bandit_sprites
