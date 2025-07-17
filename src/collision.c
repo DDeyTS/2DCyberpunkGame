@@ -7,7 +7,7 @@
 //**
 //**************************************************************************
 
-#include "main.h"
+#include "collison.h"
 
 /*
       Radical change!
@@ -24,23 +24,13 @@
                                             (July 13, 2025)
 */
 
-// ======================================================
-//
-//     COLLISION.C
-//
-//     RectSqColl() creates either rectangular or square
-//     collision. It's useful to wall collisions, too.
-//
-//     CircleReaderColl() focus on circular collison.
-//
-// ======================================================
-
 //==========================================================================
 //
 //    RectSqColl
 //
 //    Creates either rectangular or square collision, useful to wall 
 //    collisions.
+//
 //==========================================================================
 
 bool RectSqColl(float px, float py, int pw, int ph, float wall_x1,
@@ -57,6 +47,7 @@ bool RectSqColl(float px, float py, int pw, int ph, float wall_x1,
 //    CircleColl
 //
 //    The same above but focused on circular collision.
+//
 //==========================================================================
 
 bool CircleColl(float cx1, float cy1, float r1, float cx2, float cy2,

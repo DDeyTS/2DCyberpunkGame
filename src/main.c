@@ -9,9 +9,8 @@
 
 #include "main.h"
 #include "tile_render.h"
-
-SpriteSheetInfo spr;
-SpriteSheetInfo ent;
+#include "bitmap.h"
+#include "collision.h"
 
 tmx_map *map = NULL;
 
@@ -20,8 +19,8 @@ tmx_map *map = NULL;
       to make an isometric movement.
           Update: the feature successful ran.
 
-  (X) Second feature: loading sprite sheets
-      from .txt files.
+      Second feature: loading sprite sheets
+      from .txt files. (Discarted.)
           Update: it went wrong due to complications
           to read each line which set the specific
           sprite in the sprite sheet.
@@ -45,8 +44,6 @@ tmx_map *map = NULL;
         Update 2: map render is working well, though the map
         objects aren't flipping appropriately. Maybe I'll need
         to remake another tilemap to solve that.
-
-      (X) = Discarted.
 
       First Feature Update - Beginning of July 2025.
       Last Feature Update - July 16, 2025.
