@@ -8,11 +8,17 @@
 //**************************************************************************
 
 #include "main.h"
-#include "tile_render.h"
 #include "bitmap.h"
 #include "collision.h"
+#include "dialogue_sys.h"
+#include "tile_render.h"
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
+#include <allegro5/bitmap.h>
+#include <string.h>
 
 tmx_map *map = NULL;
+ALLEGRO_FONT *font;
 
 /*
       First feature: finding out an adequated way
@@ -54,9 +60,10 @@ tmx_map *map = NULL;
 //    game_main
 //
 //==========================================================================
+
 int main() {
   if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
-      !al_install_keyboard()) {
+      !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon()) {
     fprintf(stderr, "Falha ao inicializar Allegro\n");
     return 1;
   }
@@ -69,6 +76,20 @@ int main() {
   al_register_event_source(queue, al_get_timer_event_source(timer));
   al_register_event_source(queue, al_get_keyboard_event_source());
   al_start_timer(timer);
+
+  // NPC portrait
+  ALLEGRO_BITMAP *clowngirl = al_load_bitmap("clowngirl_portrait.png");
+  // NPC dialogue
+  // TODO: Build a sophisticated dialogue archive to store and change the
+  // current dialogue and speaker.
+  strcpy(clown.name, "Clowngirl");
+  const char *default_text =
+      "Hey, little man. Are ya lost here? Really? In a debug void? It sounds "
+      "kinda funny for me... A man jailed by his fate.";
+  clown.dialog = malloc(strlen(default_text) + 1);
+  if (clown.dialog) {
+    strcpy(clown.dialog, default_text);
+  }
 
   // Bandit Position
   spr.px = 320;
@@ -108,6 +129,16 @@ int main() {
       keys[ev.keyboard.keycode] = false;
     }
 
+    // if (ev.keyboard.keycode >= ALLEGRO_KEY_1 &&
+    //     ev.keyboard.keycode <= ALLEGRO_KEY_9) {
+    //   int index = ev.keyboard.keycode - ALLEGRO_KEY_1;
+    //
+    //   if (index < total_text) {
+    //     free(clown.dialog); // free previous dialogue
+    //     clown.dialog = malloc(strlen(text[index]) + 1);
+    //     strcpy(clown.dialog, text[index]);
+    //   }
+    // }
     if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       running = 0;
 
@@ -138,6 +169,7 @@ int main() {
                         al_map_rgb(255, 0, 0), 5.0);
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
       BanditDraw();
+      DlgBox(clowngirl, clown.name, clown.dialog, 0, 10);
       al_flip_display();
       redraw = false;
     }
@@ -145,6 +177,8 @@ int main() {
 
   al_destroy_display(disp);
   tmx_map_free(map);
+  al_destroy_font(font);
+  free(clown.dialog);
   BitmapExplode();
   al_destroy_event_queue(queue);
   al_destroy_timer(timer);
