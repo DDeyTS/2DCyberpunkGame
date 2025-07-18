@@ -12,10 +12,6 @@
 #include "collision.h"
 #include "dialogue_sys.h"
 #include "tile_render.h"
-#include <allegro5/allegro_font.h>
-#include <allegro5/allegro_ttf.h>
-#include <allegro5/bitmap.h>
-#include <string.h>
 
 tmx_map *map = NULL;
 ALLEGRO_FONT *font;
@@ -50,9 +46,11 @@ ALLEGRO_FONT *font;
         Update 2: map render is working well, though the map
         objects aren't flipping appropriately. Maybe I'll need
         to remake another tilemap to solve that.
+      Fifth feature: a dialogue box.
+        Update: it ran stupidly well! 
 
       First Feature Update - Beginning of July 2025.
-      Last Feature Update - July 16, 2025.
+      Last Feature Update - July 17, 2025.
 */
 
 //==========================================================================
