@@ -13,14 +13,6 @@
 NpcTalk dlg;
 NpcTalk clown;
 
-/*
-      INPUT: imagem do NPC, texto do dialogo, posição da caixa na tela;
-      PROCESS: desenhar um retangulo, carregar o retrato no lado esquerdo, o
-      texto no centro para a direita em 3 linhas de espessura.
-      OUTPUT: caixa aparece desenhada com a foto do NPC e o texto de fala na
-      tela.
-*/
-
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text,
             float x, float y) {
   // Box sizes
