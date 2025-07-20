@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main loop
-//** Last Update: 17-07-2025
+//** Last Update: 19-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -12,6 +12,7 @@
 #include "collision.h"
 #include "dialogue_sys.h"
 #include "tile_render.h"
+#include <string.h>
 
 tmx_map *map = NULL;
 ALLEGRO_FONT *font;
@@ -47,10 +48,12 @@ ALLEGRO_FONT *font;
         objects aren't flipping appropriately. Maybe I'll need
         to remake another tilemap to solve that.
       Fifth feature: a dialogue box.
-        Update: it ran stupidly well! 
+        Update: it ran stupidly well!
+        Update 2: now the dialogue box disappears when the text
+        is over.
 
       First Feature Update - Beginning of July 2025.
-      Last Feature Update - July 17, 2025.
+      Last Feature Update - July 19, 2025.
 */
 
 //==========================================================================
@@ -78,16 +81,16 @@ int main() {
   // NPC portrait
   ALLEGRO_BITMAP *clowngirl = al_load_bitmap("clowngirl_portrait.png");
   // NPC dialogue
-  // TODO: Build a sophisticated dialogue archive to store and change the
-  // current dialogue and speaker.
-  strcpy(clown.name, "Clowngirl");
-  const char *default_text =
-      "Hey, little man. Are ya lost here? Really? In a debug void? It sounds "
-      "kinda funny for me... A man jailed by his fate.";
-  clown.dialog = malloc(strlen(default_text) + 1);
-  if (clown.dialog) {
-    strcpy(clown.dialog, default_text);
-  }
+  clown.name = "Harley the Funny";
+  clown.num_dlg = 4;
+  clown.dialog = malloc(sizeof(char *) * clown.num_dlg);
+  clown.dialog[0] = strdup("Why do ya still looking at me, little man?");
+  clown.dialog[1] = strdup("Fuck you, bro.");
+  clown.dialog[2] =
+      strdup("After that, I'll not tell ya where's the exit, freaky! You're "
+             "lucky cuz my brothers aren't here right now. Otherwise they'll "
+             "fuck you up!");
+  clown.dialog[3] = strdup("Well... goodbye, little void's man.");
 
   // Bandit Position
   spr.px = 320;
@@ -121,22 +124,24 @@ int main() {
     ALLEGRO_EVENT ev;
     al_wait_for_event(queue, &ev);
 
+    // Keyboard boolean
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       keys[ev.keyboard.keycode] = true;
     } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
       keys[ev.keyboard.keycode] = false;
     }
 
-    // if (ev.keyboard.keycode >= ALLEGRO_KEY_1 &&
-    //     ev.keyboard.keycode <= ALLEGRO_KEY_9) {
-    //   int index = ev.keyboard.keycode - ALLEGRO_KEY_1;
-    //
-    //   if (index < total_text) {
-    //     free(clown.dialog); // free previous dialogue
-    //     clown.dialog = malloc(strlen(text[index]) + 1);
-    //     strcpy(clown.dialog, text[index]);
-    //   }
-    // }
+    // Dialogue skipper for debug reasons
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+      if (keys[ALLEGRO_KEY_ENTER]) {
+        if (clown.current_dlg < clown.num_dlg - 1) {
+          clown.current_dlg++;
+        } else {
+          clown.current_dlg = clown.num_dlg;
+        }
+      }
+    }
+
     if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       running = 0;
 
@@ -144,7 +149,7 @@ int main() {
       redraw = true;
     }
 
-    // define callbacks para libTMX
+    // defines callbacks for libTMX
     tmx_img_load_func = AllegTexLoader;
     tmx_img_free_func = AllegTexFree;
 
@@ -163,20 +168,30 @@ int main() {
       al_set_target_backbuffer(disp);
       al_clear_to_color(al_map_rgb(0, 0, 0));
       RenderMap(map);
+
+      // Collisions drawings
       al_draw_rectangle(ent.rx, ent.ry, ent.rw + ent.rx, ent.rh + ent.ry,
                         al_map_rgb(255, 0, 0), 5.0);
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
+
       BanditDraw();
-      DlgBox(clowngirl, clown.name, clown.dialog, 0, 10);
+      if (clown.current_dlg != clown.num_dlg) {
+        DlgBox(clowngirl, clown.name, clown.dialog[clown.current_dlg]);
+      }
+
       al_flip_display();
       redraw = false;
     }
   }
 
   al_destroy_display(disp);
+  // free(clown.dialog);
+  for (int i = 0; i < clown.num_dlg; i++) {
+    free(clown.dialog[i]);
+  }
+  free(npc.dialog);
   tmx_map_free(map);
   al_destroy_font(font);
-  free(clown.dialog);
   BitmapExplode();
   al_destroy_event_queue(queue);
   al_destroy_timer(timer);
