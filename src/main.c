@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main loop
-//** Last Update: 19-07-2025
+//** Last Update: 22-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -10,51 +10,13 @@
 #include "main.h"
 #include "bitmap.h"
 #include "collision.h"
-#include "dialogue_sys.h"
+#include "dialoguesys.h"
 #include "tile_render.h"
-#include <string.h>
+#include <allegro5/bitmap_io.h>
+#include <allegro5/events.h>
 
 tmx_map *map = NULL;
 ALLEGRO_FONT *font;
-
-/*
-      First feature: finding out an adequated way
-      to make an isometric movement.
-          Update: the feature successful ran.
-
-      Second feature: loading sprite sheets
-      from .txt files. (Discarted.)
-          Update: it went wrong due to complications
-          to read each line which set the specific
-          sprite in the sprite sheet.
-
-      Third feature: collision. I'll make two
-      rectangles (invisible if possible) to draw
-      the collision size.
-          Update: the collision reader worked
-          perfectly, but the wall (the next feature)
-          is putting my brains in trouble.
-          Update 2: the wall collision worked exactly
-          like I'd thought... of course, after a lot of
-          hours of code!
-          Update 2: After struggling to reach a more
-          complex collision system, I've ended up in
-          a new perspective to this project: it's all
-          detailed inside "collision.c".
-      Fourth feature: making a cool and practical tilemap.
-        Update: the map for test was 100% loaded and flipped.
-        Now I'll have to put the objects on.
-        Update 2: map render is working well, though the map
-        objects aren't flipping appropriately. Maybe I'll need
-        to remake another tilemap to solve that.
-      Fifth feature: a dialogue box.
-        Update: it ran stupidly well!
-        Update 2: now the dialogue box disappears when the text
-        is over.
-
-      First Feature Update - Beginning of July 2025.
-      Last Feature Update - July 19, 2025.
-*/
 
 //==========================================================================
 //
@@ -78,19 +40,16 @@ int main() {
   al_register_event_source(queue, al_get_keyboard_event_source());
   al_start_timer(timer);
 
-  // NPC portrait
-  ALLEGRO_BITMAP *clowngirl = al_load_bitmap("clowngirl_portrait.png");
   // NPC dialogue
-  clown.name = "Harley the Funny";
-  clown.num_dlg = 4;
-  clown.dialog = malloc(sizeof(char *) * clown.num_dlg);
-  clown.dialog[0] = strdup("Why do ya still looking at me, little man?");
-  clown.dialog[1] = strdup("Fuck you, bro.");
-  clown.dialog[2] =
-      strdup("After that, I'll not tell ya where's the exit, freaky! You're "
-             "lucky cuz my brothers aren't here right now. Otherwise they'll "
-             "fuck you up!");
-  clown.dialog[3] = strdup("Well... goodbye, little void's man.");
+  int current_topic_id = 0;
+  NPC *clown = CreateNpc("Clowngirl", 3);
+  clown->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
+  FillTopic(clown, 0, "Who are you?", "Hey, little man. I'm Harley!");
+  LoadDlg(clown, "Who are you?");
+  FillTopic(clown, 1, "Mission", "Escape? You won't escape from here.");
+  LoadDlg(clown, "Mission");
+  FillTopic(clown, 2, "Farewell", "Bye, bye, loser!");
+  LoadDlg(clown, "Farewell");
 
   // Bandit Position
   spr.px = 320;
@@ -131,14 +90,26 @@ int main() {
       keys[ev.keyboard.keycode] = false;
     }
 
-    // Dialogue skipper for debug reasons
+    // // Dialogue skipper for debug reasons
+    // if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+    //   if (keys[ALLEGRO_KEY_ENTER]) {
+    //     if (clown.current_dlg < clown.num_dlg - 1) {
+    //       clown.current_dlg++;
+    //     } else {
+    //       clown.current_dlg = clown.num_dlg;
+    //     }
+    //   }
+    // }
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (keys[ALLEGRO_KEY_ENTER]) {
-        if (clown.current_dlg < clown.num_dlg - 1) {
-          clown.current_dlg++;
+        if (current_topic_id < clown->num_topic) {
+          current_topic_id++;
         } else {
-          clown.current_dlg = clown.num_dlg;
+          current_topic_id = 0;
         }
+        //   current_topic_index = clown->num_topic;
+        //
+        // current_topic_index++;
       }
     }
 
@@ -152,7 +123,6 @@ int main() {
     // defines callbacks for libTMX
     tmx_img_load_func = AllegTexLoader;
     tmx_img_free_func = AllegTexFree;
-
     map = tmx_load("tiles/closedstreet_map.tmx");
     if (!map) {
       tmx_perror("Cannot load map");
@@ -161,11 +131,10 @@ int main() {
 
     BanditMove(keys, &spr.px, &spr.py, sp);
     BanditDirection(keys, &spr.frame_w, &spr.frame_h);
-
     al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
     if (redraw && al_is_event_queue_empty(queue)) {
-      al_set_target_backbuffer(disp);
+      // al_set_target_backbuffer(disp);
       al_clear_to_color(al_map_rgb(0, 0, 0));
       RenderMap(map);
 
@@ -175,9 +144,8 @@ int main() {
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
 
       BanditDraw();
-      if (clown.current_dlg != clown.num_dlg) {
-        DlgBox(clowngirl, clown.name, clown.dialog[clown.current_dlg]);
-      }
+      const char *topic = clown->topics[current_topic_id].topic;
+      LoadDlg(clown, topic);
 
       al_flip_display();
       redraw = false;
@@ -185,11 +153,10 @@ int main() {
   }
 
   al_destroy_display(disp);
-  // free(clown.dialog);
-  for (int i = 0; i < clown.num_dlg; i++) {
-    free(clown.dialog[i]);
-  }
-  free(npc.dialog);
+  // free(npc.dialog);
+  free(clown->topics);
+  free(clown);
+  ExplodeDlgBox(clown->portrait_id);
   tmx_map_free(map);
   al_destroy_font(font);
   BitmapExplode();
