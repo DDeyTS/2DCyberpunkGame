@@ -12,8 +12,8 @@
 #include "collision.h"
 #include "dialoguesys.h"
 #include "tile_render.h"
-#include <allegro5/bitmap_io.h>
 #include <allegro5/events.h>
+#include <allegro5/keycodes.h>
 
 tmx_map *map = NULL;
 ALLEGRO_FONT *font;
@@ -42,15 +42,21 @@ int main() {
 
   // NPC dialogue
   bool dlg_open = true;
-  int current_topic_id = 0;
-  NPC *clown = CreateNpc("Clowngirl", 3);
-  clown->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
-  FillTopic(clown, 0, "Who are you?", "Hey, little man. I'm Harley!");
-  LoadDlg(clown, "Who are you?");
-  FillTopic(clown, 1, "Mission", "Escape? You won't escape from here.");
-  LoadDlg(clown, "Mission");
-  FillTopic(clown, 2, "Farewell", "Bye, bye, loser!");
-  LoadDlg(clown, "Farewell");
+  NPC *npc = CreateNpc("Clowngirl", 3);
+  npc->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
+  FillTopic(npc, 0, "Who are you?",
+            "Hi, little man. I'm Harley! The clown icon inside some host "
+            "around cyberspace... I guess.");
+  LoadDlg(npc, "Who are you?");
+  FillTopic(npc, 1, "Escape",
+            "Escape? Just get out through the way you did before, isn't easy?");
+  LoadDlg(npc, "Escape");
+  FillTopic(npc, 2, "Clown",
+            "Yes, I am... Why? There aren't clowns in your world?");
+  LoadDlg(npc, "Clown");
+
+  int selected_topic = 0;
+  bool choosing_topic = true;
 
   // Bandit Position
   spr.px = 320;
@@ -91,33 +97,39 @@ int main() {
       keys[ev.keyboard.keycode] = false;
     }
 
-    // // Dialogue skipper for debug reasons
-    // if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-    //   if (keys[ALLEGRO_KEY_ENTER]) {
-    //     if (clown.current_dlg < clown.num_dlg - 1) {
-    //       clown.current_dlg++;
-    //     } else {
-    //       clown.current_dlg = clown.num_dlg;
-    //     }
-    //   }
-    // }
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-      if (keys[ALLEGRO_KEY_ENTER] && dlg_open) {
-        current_topic_id++;
-        if (current_topic_id >= clown->num_topic) {
-          dlg_open = false;
-        }
-        //   current_topic_index = clown->num_topic;
-        //
-        // current_topic_index++;
-      }
-    }
-
     if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
       running = 0;
 
     if (ev.type == ALLEGRO_EVENT_TIMER) {
       redraw = true;
+    }
+
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+      if (keys[ALLEGRO_KEY_SPACE]) {
+        dlg_open = true;
+        choosing_topic = true;
+      }
+    }
+
+    // Topic Selector
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+      if (dlg_open && choosing_topic) {
+        if (ev.keyboard.keycode == ALLEGRO_KEY_DOWN) {
+          selected_topic++;
+          if (selected_topic >= npc->num_topic)
+            selected_topic = 0;
+        }
+        if (ev.keyboard.keycode == ALLEGRO_KEY_UP) {
+          selected_topic--;
+          if (selected_topic < 0)
+            selected_topic = npc->num_topic - 1;
+        }
+        if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
+          choosing_topic = false;
+        }
+      } else if (!choosing_topic && ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
+        dlg_open = false; // close dialogue if ENTER is pressed again
+      }
     }
 
     // defines callbacks for libTMX
@@ -144,23 +156,32 @@ int main() {
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
 
       BanditDraw();
-      if (dlg_open && current_topic_id < clown->num_topic) {
-        const char *topic = clown->topics[current_topic_id].topic;
-        LoadDlg(clown, topic);
+
+      if (dlg_open) {
+        if (choosing_topic) {
+          DrawTopicMenu(npc, selected_topic);
+        } else {
+          const char *topic = npc->topics[selected_topic].topic;
+          LoadDlg(npc, topic);
+        }
       }
+      // if (dlg_open && current_topic_id < clown->num_topic) {
+      //   const char *topic = clown->topics[current_topic_id].topic;
+      //   LoadDlg(clown, topic);
+      // }
       al_flip_display();
       redraw = false;
     }
   }
 
   al_destroy_display(disp);
-  ExplodeDlgBox(clown->portrait_id);
-  for (int i = 0; i < clown->num_topic; i++) {
-    free((char *)clown->topics[i].topic);
-    free((char *)clown->topics[i].text);
+  ExplodeDlgBox(npc->portrait_id);
+  for (int i = 0; i < npc->num_topic; i++) {
+    free((char *)npc->topics[i].topic);
+    free((char *)npc->topics[i].text);
   }
-  free(clown->topics);
-  free(clown);
+  free(npc->topics);
+  free(npc);
   tmx_map_free(map);
   al_destroy_font(font);
   BitmapExplode();

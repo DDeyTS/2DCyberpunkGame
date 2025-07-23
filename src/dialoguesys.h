@@ -16,6 +16,7 @@
 typedef struct {
   const char *topic;
   const char *text;
+  ALLEGRO_BITMAP *menu_box;
 } Topic;
 
 typedef struct {
@@ -41,5 +42,6 @@ NPC *CreateNpc(const char *name, int num_topic);
 void FillTopic(NPC *npc, int index, const char *topic, const char *text);
 void LoadDlg(NPC *npc, const char *topic);
 void ExplodeDlgBox(ALLEGRO_BITMAP *portrait);
+void DrawTopicMenu(NPC *npc, int selected);
 
 #endif

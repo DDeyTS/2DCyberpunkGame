@@ -8,8 +8,8 @@
 //**************************************************************************
 
 #include "dialoguesys.h"
-#include <allegro5/bitmap.h>
-#include <allegro5/bitmap_draw.h>
+#include <allegro5/allegro_primitives.h>
+#include <allegro5/color.h>
 
 NPC dlg;
 NPC clown;
@@ -35,7 +35,7 @@ NPC *CreateNpc(const char *name, int num_topic) {
 //
 //    FillTopic
 //
-//    Stores the topic's ID and tag, as well as the dialogue text related to 
+//    Stores the topic's ID and tag, as well as the dialogue text related to
 //    it.
 //
 //==========================================================================
@@ -127,6 +127,29 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   }
 }
 
+void DrawTopicMenu(NPC *npc, int selected) {
+  if (npc->num_topic <= 0)
+    return;
+
+  float x = 50, y = 150;
+  float box_w = 200, box_h = npc->num_topic * 30 + 20;
+  ALLEGRO_COLOR color;
+  ALLEGRO_FONT *font = al_load_ttf_font("frizquadrata_tt_regular.ttf", 16, 0);
+  ALLEGRO_FONT *title = al_load_ttf_font("frizquadrata_tt_regular.ttf", 18, 0);
+
+  // Topic Menu
+  al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h ,
+                           al_map_rgba(0, 0, 150, 200));
+  al_draw_text(title, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
+
+  // Topic Loader
+  for (int i = 0; i < npc->num_topic; i++) {
+    color =
+        (i == selected) ? al_map_rgb(255, 255, 0) : al_map_rgb(255, 255, 255);
+    al_draw_textf(font, color, x, y + i * 25, 0, "%s", npc->topics[i].topic);
+  }
+}
+
 void LoadDlg(NPC *npc, const char *topic) {
   for (int i = 0; i < npc->num_topic; i++) {
     if (strcmp(npc->topics[i].topic, topic) == 0) {
@@ -143,5 +166,3 @@ void LoadDlg(NPC *npc, const char *topic) {
 //==========================================================================
 
 void ExplodeDlgBox(ALLEGRO_BITMAP *portrait) { al_destroy_bitmap(portrait); }
-
-
