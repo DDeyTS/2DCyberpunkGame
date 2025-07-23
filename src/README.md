@@ -14,6 +14,8 @@ CyberSP_Project/
 │   ├── bitmap.h
 │   ├── collision.c     # walls & triggers logic
 │   ├── collision.h
+│   ├── dialoguesys.c
+│   ├── dialoguesys.h
 │   ├── main.c          # game loop
 |   ├── main.h
 │   ├── tile_render.c   # libTMX map render
@@ -48,7 +50,9 @@ CyberSP_Project/
 
 > **Update 2**: now the dialogue box disappears when the text is over.
 
+> **Update 3**: the topics selector is working!
+
 
 _First Feature Update - Beginning of July 2025._
 
-_Last Feature Update - July 19, 2025._
+_Last Feature Update - July 23, 2025._
