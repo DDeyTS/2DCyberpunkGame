@@ -41,8 +41,8 @@ NPC *CreateNpc(const char *name, int num_topic) {
 //==========================================================================
 
 void FillTopic(NPC *npc, int index, const char *topic, const char *text) {
-  npc->topics[index].topic = topic;
-  npc->topics[index].text = text;
+  npc->topics[index].topic = strdup(topic);
+  npc->topics[index].text = strdup(text);
 }
 
 //==========================================================================

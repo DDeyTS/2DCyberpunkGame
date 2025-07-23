@@ -41,6 +41,7 @@ int main() {
   al_start_timer(timer);
 
   // NPC dialogue
+  bool dlg_open = true;
   int current_topic_id = 0;
   NPC *clown = CreateNpc("Clowngirl", 3);
   clown->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
@@ -101,11 +102,10 @@ int main() {
     //   }
     // }
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-      if (keys[ALLEGRO_KEY_ENTER]) {
-        if (current_topic_id < clown->num_topic) {
-          current_topic_id++;
-        } else {
-          current_topic_id = 0;
+      if (keys[ALLEGRO_KEY_ENTER] && dlg_open) {
+        current_topic_id++;
+        if (current_topic_id >= clown->num_topic) {
+          dlg_open = false;
         }
         //   current_topic_index = clown->num_topic;
         //
@@ -144,19 +144,23 @@ int main() {
       al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
 
       BanditDraw();
-      const char *topic = clown->topics[current_topic_id].topic;
-      LoadDlg(clown, topic);
-
+      if (dlg_open && current_topic_id < clown->num_topic) {
+        const char *topic = clown->topics[current_topic_id].topic;
+        LoadDlg(clown, topic);
+      }
       al_flip_display();
       redraw = false;
     }
   }
 
   al_destroy_display(disp);
-  // free(npc.dialog);
+  ExplodeDlgBox(clown->portrait_id);
+  for (int i = 0; i < clown->num_topic; i++) {
+    free((char *)clown->topics[i].topic);
+    free((char *)clown->topics[i].text);
+  }
   free(clown->topics);
   free(clown);
-  ExplodeDlgBox(clown->portrait_id);
   tmx_map_free(map);
   al_destroy_font(font);
   BitmapExplode();
