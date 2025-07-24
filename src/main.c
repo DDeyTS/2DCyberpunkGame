@@ -190,10 +190,11 @@ int main() {
   }
   free(npc->topics);
   free(npc);
-  al_destroy_font(font);
-
+  
   // Map
   tmx_map_free(map);
+
+  al_destroy_font(font);
 
   // Sprites
   BitmapExplode();
