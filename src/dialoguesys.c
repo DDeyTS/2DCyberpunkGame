@@ -8,12 +8,10 @@
 //**************************************************************************
 
 #include "dialoguesys.h"
-#include <allegro5/allegro_primitives.h>
-#include <allegro5/color.h>
 
-NPC dlg;
-NPC clown;
-NPC npc;
+// NPC dlg;
+NPC *clowngirl;
+NPC *npc;
 
 //==========================================================================
 //
@@ -72,7 +70,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   ALLEGRO_COLOR name_color = al_map_rgb(255, 255, 0);
 
   // Dialogue Box
-  ALLEGRO_BITMAP *box = al_load_bitmap("chatbox_sprite.png");
+  ALLEGRO_BITMAP *box = al_load_bitmap("portraits/chatbox_sprite.png");
   al_draw_bitmap(box, 0, 0, 0);
 
   if (portrait) {
@@ -127,6 +125,12 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   }
 }
 
+//==========================================================================
+//
+//    DrawTopicMenu
+//
+//==========================================================================
+
 void DrawTopicMenu(NPC *npc, int selected) {
   if (npc->num_topic <= 0)
     return;
@@ -138,7 +142,7 @@ void DrawTopicMenu(NPC *npc, int selected) {
   ALLEGRO_FONT *title = al_load_ttf_font("frizquadrata_tt_regular.ttf", 18, 0);
 
   // Topic Menu
-  al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h ,
+  al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
                            al_map_rgba(0, 0, 150, 200));
   al_draw_text(title, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
 
@@ -150,10 +154,20 @@ void DrawTopicMenu(NPC *npc, int selected) {
   }
 }
 
+//==========================================================================
+//
+//    LoadDlg
+//
+//==========================================================================
+
 void LoadDlg(NPC *npc, const char *topic) {
   for (int i = 0; i < npc->num_topic; i++) {
     if (strcmp(npc->topics[i].topic, topic) == 0) {
       DlgBox(npc->portrait_id, npc->name, npc->topics[i].text);
+      if (!npc->portrait_id) {
+        fprintf(stderr, "Aviso: NPC '%s' está sem retrato\n", npc->name);
+        exit(1);
+      }
       return;
     }
   }

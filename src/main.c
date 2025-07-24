@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main loop
-//** Last Update: 22-07-2025
+//** Last Update: 23-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -12,8 +12,6 @@
 #include "collision.h"
 #include "dialoguesys.h"
 #include "tile_render.h"
-#include <allegro5/events.h>
-#include <allegro5/keycodes.h>
 
 tmx_map *map = NULL;
 ALLEGRO_FONT *font;
@@ -42,8 +40,12 @@ int main() {
 
   // NPC dialogue
   bool dlg_open = true;
-  NPC *npc = CreateNpc("Clowngirl", 3);
+  npc = CreateNpc("Clowngirl", 3);
   npc->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
+  // if (!clowngirl->portrait_id) {
+  //   fprintf(stderr, "Erro: não foi possível carregar retrato\n");
+  //   exit(1);
+  // }
   FillTopic(npc, 0, "Who are you?",
             "Hi, little man. I'm Harley! The clown icon inside some host "
             "around cyberspace... I guess.");
@@ -86,6 +88,15 @@ int main() {
   bool keys[ALLEGRO_KEY_MAX];
   memset(keys, 0, sizeof(keys)); // reset array
 
+  // defines callbacks for libTMX
+  tmx_img_load_func = AllegTexLoader;
+  tmx_img_free_func = AllegTexFree;
+  map = tmx_load("tiles/tile_garbage/debugavenue.tmx");
+  if (!map) {
+    tmx_perror("Cannot load map");
+    return 1;
+  }
+
   while (running) {
     ALLEGRO_EVENT ev;
     al_wait_for_event(queue, &ev);
@@ -104,6 +115,7 @@ int main() {
       redraw = true;
     }
 
+    // Dialog Trigger Button
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (keys[ALLEGRO_KEY_SPACE]) {
         dlg_open = true;
@@ -132,18 +144,15 @@ int main() {
       }
     }
 
-    // defines callbacks for libTMX
-    tmx_img_load_func = AllegTexLoader;
-    tmx_img_free_func = AllegTexFree;
-    map = tmx_load("tiles/closedstreet_map.tmx");
-    if (!map) {
-      tmx_perror("Cannot load map");
-      return 1;
-    }
-
     BanditMove(keys, &spr.px, &spr.py, sp);
     BanditDirection(keys, &spr.frame_w, &spr.frame_h);
     al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+
+    // if (map != NULL) {
+    //   printf("we fucking good\n");
+    // } else {
+    //   printf("we not fuckin good\n");
+    // }
 
     if (redraw && al_is_event_queue_empty(queue)) {
       // al_set_target_backbuffer(disp);
@@ -165,16 +174,15 @@ int main() {
           LoadDlg(npc, topic);
         }
       }
-      // if (dlg_open && current_topic_id < clown->num_topic) {
-      //   const char *topic = clown->topics[current_topic_id].topic;
-      //   LoadDlg(clown, topic);
-      // }
+
       al_flip_display();
       redraw = false;
     }
   }
 
   al_destroy_display(disp);
+
+  // Dialog Box
   ExplodeDlgBox(npc->portrait_id);
   for (int i = 0; i < npc->num_topic; i++) {
     free((char *)npc->topics[i].topic);
@@ -182,9 +190,14 @@ int main() {
   }
   free(npc->topics);
   free(npc);
-  tmx_map_free(map);
   al_destroy_font(font);
+
+  // Map
+  tmx_map_free(map);
+
+  // Sprites
   BitmapExplode();
+
   al_destroy_event_queue(queue);
   al_destroy_timer(timer);
   return 0;

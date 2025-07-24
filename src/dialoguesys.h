@@ -4,9 +4,9 @@
 #include "bitmap.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
-#include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_ttf.h>
 #include <allegro5/bitmap.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -27,17 +27,14 @@ typedef struct {
   Topic *topics;
 } NPC;
 
-
-
-extern NPC dlg;
-extern NPC npc;
-extern NPC clown;
+// extern NPC dlg;
+extern NPC *npc;
+extern NPC *clowngirl;
 extern ALLEGRO_FONT *font;
 
 // static void GetSub(char *s, char *ss, int pos, int l);
 
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text);
-// void ExplodeDlgBox(NpcTalk *npc);
 NPC *CreateNpc(const char *name, int num_topic);
 void FillTopic(NPC *npc, int index, const char *topic, const char *text);
 void LoadDlg(NPC *npc, const char *topic);
