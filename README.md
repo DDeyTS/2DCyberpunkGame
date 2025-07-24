@@ -7,4 +7,4 @@ The **CyberSP Project** initially was thought to be an *pseudoisometric computer
 # Development Photos
 ![Collision & tile map](cybersp_dev.png)
 ![Dialogue box](cybersp_dev_dlg.png)
-![Dialogue demonstration](cyberspproject.mp4)
+![Dialogue demonstration](./cyberspproject.mp4)
