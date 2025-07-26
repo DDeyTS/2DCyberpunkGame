@@ -153,7 +153,6 @@ void DrawTopicMenu(NPC *npc, int selected) {
   float x = 50, y = 150;
   float box_w = 150, box_h = npc->num_topic * 30 + 20;
   ALLEGRO_COLOR color;
-  InitStdFont();
 
   // Topic Menu
   al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
@@ -161,6 +160,7 @@ void DrawTopicMenu(NPC *npc, int selected) {
   al_draw_rectangle(x - 10, y - 20, x + box_w, y + box_h,
                     al_map_rgb(82, 82, 255), 2);
   al_draw_text(font_std, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
+
   // Topic Scroller
   for (int i = 0; i < npc->num_topic; i++) {
     color =
