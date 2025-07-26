@@ -24,6 +24,7 @@
 //==========================================================================
 
 void *AllegTexLoader(const char *path) {
+  // printf("[AllegTexLoader] Tentando carregar imagem: %s\n", path);
   ALLEGRO_PATH *alpath = al_create_path(path);
   if (!alpath)
     return NULL;
@@ -33,6 +34,15 @@ void *AllegTexLoader(const char *path) {
   al_destroy_path(alpath);
   return (void *)bmp;
 }
+
+// void *AllegTexLoader(const char *path) {
+//   char fixed_path[256];
+//   snprintf(fixed_path, sizeof(fixed_path), "tiles/%s", path);
+//   printf("Carregando imagem: [%s]\n", fixed_path);
+//   ALLEGRO_BITMAP *bmp = al_load_bitmap(fixed_path);
+//   if (!bmp) fprintf(stderr, "Erro ao carregar imagem: %s\n", fixed_path);
+//   return bmp;
+// }
 
 //==========================================================================
 //

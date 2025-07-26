@@ -3,8 +3,8 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 typedef struct {
   // Character sprite attributes
@@ -21,7 +21,7 @@ extern SpriteSheetInfo spr;
 extern SpriteSheetInfo ent;
 
 ALLEGRO_BITMAP *BitmapGrab(int x, int y, int w, int h);
-void BitmapInit(void);
+void InitBitmap(void);
 void BitmapExplode(void);
 void BanditDraw(void);
 
