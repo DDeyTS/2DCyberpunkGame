@@ -1,8 +1,8 @@
 //**************************************************************************
 //**
 //** File: main.c (CyberSP Project)
-//** Purpose: Main loop
-//** Last Update: 23-07-2025
+//** Purpose: Main game stuff
+//** Last Update: 26-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -14,15 +14,24 @@
 #include "tile_render.h"
 
 tmx_map *map = NULL;
-ALLEGRO_FONT *font;
+ALLEGRO_DISPLAY *disp;
+ALLEGRO_EVENT_QUEUE *queue;
+ALLEGRO_TIMER *timer;
 
 //==========================================================================
 //
-//    game_main
+//    Main Game
 //
 //==========================================================================
 
 int main() {
+
+  //======================
+  //
+  //    Initializers
+  //
+  //======================
+
   if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
       !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon()) {
     fprintf(stderr, "Falha ao inicializar Allegro\n");
@@ -30,35 +39,61 @@ int main() {
   }
   BitmapInit();
 
-  ALLEGRO_DISPLAY *disp = al_create_display(DISPW, DISPH);
-  ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();
-  ALLEGRO_TIMER *timer = al_create_timer(1.0 / 30.0);
+  //======================
+  //
+  //    Event Queue
+  //
+  //======================
+
+  disp = al_create_display(DISPW, DISPH);
+  queue = al_create_event_queue();
+  timer = al_create_timer(1.0 / 30.0);
   al_register_event_source(queue, al_get_display_event_source(disp));
   al_register_event_source(queue, al_get_timer_event_source(timer));
   al_register_event_source(queue, al_get_keyboard_event_source());
   al_start_timer(timer);
 
-  // NPC dialogue
+  //======================
+  //
+  //    Dialogue Storage
+  //
+  //======================
+
   bool dlg_open = true;
-  npc = CreateNpc("Clowngirl", 3);
-  npc->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
-  // if (!clowngirl->portrait_id) {
-  //   fprintf(stderr, "Erro: não foi possível carregar retrato\n");
-  //   exit(1);
-  // }
-  FillTopic(npc, 0, "Who are you?",
-            "Hi, little man. I'm Harley! The clown icon inside some host "
-            "around cyberspace... I guess.");
-  LoadDlg(npc, "Who are you?");
-  FillTopic(npc, 1, "Escape",
-            "Escape? Just get out through the way you did before, isn't easy?");
-  LoadDlg(npc, "Escape");
-  FillTopic(npc, 2, "Clown",
-            "Yes, I am... Why? There aren't clowns in your world?");
-  LoadDlg(npc, "Clown");
+  int num_dlg = 4;
+  npc = CreateNpc("Jefferson", num_dlg);
+  npc->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
+  if (!npc->portrait_id) {
+    fprintf(stderr, "Erro: não foi possível carregar retrato\n");
+    exit(1);
+  }
+  FillTopic(
+      npc, 0, "Drugs",
+      "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
+      "course, leavin' behind the cooldown you suffers after the effect "
+      "is gone. Bad stuff, however, it's like a violent punch in your "
+      "pancreas.");
+  // LoadDlg(npc, "Dragon");
+  FillTopic(npc, 1, "Dolls",
+            "They're everywhere, bro. In every street. They know 'bout "
+            "absolutely everything inside this district!");
+  // LoadDlg(npc, "Clown");
+  FillTopic(npc, 2, "Firearms",
+            "If ya wanna some guns to brighten your night up, talks with "
+            "Ronaldo. He has a lot of stuff to show ya.");
+  FillTopic(
+      npc, 3, "Bettingshop",
+      "Alright. I know one very close o' here. Just go down the slum and if ya "
+      "were seeing some hot lights tearing up the sky, you're there.");
 
   int selected_topic = 0;
   bool choosing_topic = true;
+
+  //======================
+  //
+  //    Player Movement
+  //
+  //======================
 
   // Bandit Position
   spr.px = 320;
@@ -68,6 +103,12 @@ int main() {
   spr.frame_h = 0;
   // Movement Speed
   int sp = 3;
+
+  //======================
+  //
+  //    Collision Debug
+  //
+  //======================
 
   // Rectangle Position
   ent.rx = 300;
@@ -81,7 +122,12 @@ int main() {
   ent.cy = 150;
   ent.ray = 80;
 
-  // Loop and Bitmap Redrawing
+  //======================
+  //
+  //    Main Loop
+  //
+  //======================
+
   bool running = 1;
   bool redraw = true;
 
@@ -180,6 +226,12 @@ int main() {
     }
   }
 
+  //======================
+  //
+  //    Game Crusher
+  //
+  //======================
+
   al_destroy_display(disp);
 
   // Dialog Box
@@ -190,11 +242,11 @@ int main() {
   }
   free(npc->topics);
   free(npc);
-  
+
   // Map
   tmx_map_free(map);
 
-  al_destroy_font(font);
+  al_destroy_font(font_std);
 
   // Sprites
   BitmapExplode();

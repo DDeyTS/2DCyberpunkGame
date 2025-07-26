@@ -25,12 +25,13 @@ typedef struct {
   char **dialog;
   int num_topic;
   Topic *topics;
+  int num_dlg;
 } NPC;
 
 // extern NPC dlg;
 extern NPC *npc;
 extern NPC *clowngirl;
-extern ALLEGRO_FONT *font;
+extern ALLEGRO_FONT *font_std;
 
 // static void GetSub(char *s, char *ss, int pos, int l);
 
@@ -38,7 +39,8 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text);
 NPC *CreateNpc(const char *name, int num_topic);
 void FillTopic(NPC *npc, int index, const char *topic, const char *text);
 void LoadDlg(NPC *npc, const char *topic);
-void ExplodeDlgBox(ALLEGRO_BITMAP *portrait);
+void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
 void DrawTopicMenu(NPC *npc, int selected);
+void InitStdFont();
 
 #endif

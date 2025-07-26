@@ -2,16 +2,19 @@
 //**
 //** File: dialogue_sys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 22-07-2025
+//** Last Update: 26-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 #include "dialoguesys.h"
 
-// NPC dlg;
 NPC *clowngirl;
 NPC *npc;
+ALLEGRO_FONT *font_std;
+
+void InitStdFont();
+void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
 
 //==========================================================================
 //
@@ -65,7 +68,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   float safe_width = text_max_w - 10.0f;
   float safe_height = text_max_h - 10.0f;
 
-  ALLEGRO_FONT *font = al_load_ttf_font("frizquadrata_tt_regular.ttf", 17, 0);
+  InitStdFont();
   ALLEGRO_COLOR font_color = al_map_rgb(255, 255, 255);
   ALLEGRO_COLOR name_color = al_map_rgb(255, 255, 0);
 
@@ -80,11 +83,11 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   }
 
   if (name) {
-    al_draw_text(font, name_color, x + portrait_size + 2 * padding, y + padding,
-                 0, name);
+    al_draw_text(font_std, name_color, x + portrait_size + 2 * padding,
+                 y + padding, 0, name);
   }
 
-  int line_height = al_get_font_line_height(font);
+  int line_height = al_get_font_line_height(font_std);
   int max_lines = safe_height / line_height;
   int line_count = 0;
 
@@ -104,9 +107,9 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     } else {
       snprintf(temp, sizeof(temp), "%s %s", line, word);
     }
-    if (al_get_text_width(font, temp) > safe_width) {
+    if (al_get_text_width(font_std, temp) > safe_width) {
       // Draws current line
-      al_draw_text(font, font_color, text_x, line_y + 20, 0, line);
+      al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
       line_y += line_height;
       line_count++;
       snprintf(line, sizeof(line), "%s",
@@ -121,13 +124,18 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
 
   // Draws the last line
   if (line_count < max_lines && strlen(line) > 0) {
-    al_draw_text(font, font_color, text_x, line_y + 20, 0, line);
+    al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
   }
+
+  ExplodeDlgBox(box);
+  // ExplodeDlgBox(portrait);
 }
 
 //==========================================================================
 //
 //    DrawTopicMenu
+//
+//    Window with a list of topics to ask for.
 //
 //==========================================================================
 
@@ -136,27 +144,32 @@ void DrawTopicMenu(NPC *npc, int selected) {
     return;
 
   float x = 50, y = 150;
-  float box_w = 200, box_h = npc->num_topic * 30 + 20;
+  float box_w = 150, box_h = npc->num_topic * 30 + 20;
   ALLEGRO_COLOR color;
-  ALLEGRO_FONT *font = al_load_ttf_font("frizquadrata_tt_regular.ttf", 16, 0);
-  ALLEGRO_FONT *title = al_load_ttf_font("frizquadrata_tt_regular.ttf", 18, 0);
+  InitStdFont();
+  ALLEGRO_FONT *title = font_std;
 
   // Topic Menu
   al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
-                           al_map_rgba(0, 0, 150, 200));
+                           al_map_rgb(0, 0, 49));
+  al_draw_rectangle(x - 10, y - 20, x + box_w, y + box_h,
+                    al_map_rgb(82, 82, 255), 2);
   al_draw_text(title, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
 
   // Topic Loader
   for (int i = 0; i < npc->num_topic; i++) {
     color =
         (i == selected) ? al_map_rgb(255, 255, 0) : al_map_rgb(255, 255, 255);
-    al_draw_textf(font, color, x, y + i * 25, 0, "%s", npc->topics[i].topic);
+    al_draw_textf(font_std, color, x, y + i * 20, 0, "%s",
+                  npc->topics[i].topic);
   }
 }
 
 //==========================================================================
 //
 //    LoadDlg
+//
+//    Loads every NPC's dialogue and relacted topic to trigger it.
 //
 //==========================================================================
 
@@ -173,10 +186,20 @@ void LoadDlg(NPC *npc, const char *topic) {
   }
 }
 
+void InitStdFont() {
+  font_std = al_load_ttf_font("fonts/Steelflight.ttf", 14, 0);
+  if (!font_std) {
+    printf("Erro: falha ao carregar fonte!\n");
+    exit(1);
+  }
+}
+
 //==========================================================================
 //
 //    ExplodeDlgBox
 //
+//    Destroys every bitmap made in it.
+//
 //==========================================================================
 
-void ExplodeDlgBox(ALLEGRO_BITMAP *portrait) { al_destroy_bitmap(portrait); }
+void ExplodeDlgBox(ALLEGRO_BITMAP *stuff) { al_destroy_bitmap(stuff); }
