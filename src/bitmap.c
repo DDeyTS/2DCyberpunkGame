@@ -2,7 +2,7 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 17-07-2025
+//** Last Update: 26-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -23,6 +23,10 @@ SpriteSheetInfo ent;
 
 ALLEGRO_BITMAP *BitmapGrab(int x, int y, int w, int h) {
   ALLEGRO_BITMAP *sprite = al_create_sub_bitmap(spr.sheet, x, y, w, h);
+  if (!sprite) {
+    printf("Error: fail to load sub-bitmap!\n");
+    exit(1);
+  }
   return sprite;
 }
 
@@ -34,15 +38,15 @@ ALLEGRO_BITMAP *BitmapGrab(int x, int y, int w, int h) {
 //
 //==========================================================================
 
-void BitmapInit() {
-  spr.sheet = al_load_bitmap("bandit_still_sheet.png");
+void InitBitmap() {
+  spr.sheet = al_load_bitmap("sprites/bandit_still_sheet.png");
   if (!spr.sheet) {
-    printf("Erro: spr.bandit não carregou\n");
+    printf("Error: fail to load spr.bandit!\n");
   }
 
   spr.bandit = BitmapGrab(0, 0, 16, 24);
   if (!spr.bandit) {
-    printf("Erro: BitmapGrab retornou NULL\n");
+    printf("Error: BitmapGrab returned NULL\n");
     exit(1);
   }
 }

@@ -12,8 +12,12 @@
 NPC *clowngirl;
 NPC *npc;
 ALLEGRO_FONT *font_std;
+ALLEGRO_COLOR font_color;
+ALLEGRO_COLOR name_color;
+static ALLEGRO_BITMAP *chatbox = NULL;
 
 void InitStdFont();
+void InitChatboxBitmap();
 void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
 
 //==========================================================================
@@ -42,6 +46,7 @@ NPC *CreateNpc(const char *name, int num_topic) {
 //==========================================================================
 
 void FillTopic(NPC *npc, int index, const char *topic, const char *text) {
+  npc->intro_dlg = strdup("What's up, bro. What do ya want from me?");
   npc->topics[index].topic = strdup(topic);
   npc->topics[index].text = strdup(text);
 }
@@ -68,18 +73,20 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   float safe_width = text_max_w - 10.0f;
   float safe_height = text_max_h - 10.0f;
 
-  InitStdFont();
-  ALLEGRO_COLOR font_color = al_map_rgb(255, 255, 255);
-  ALLEGRO_COLOR name_color = al_map_rgb(255, 255, 0);
-
-  // Dialogue Box
-  ALLEGRO_BITMAP *box = al_load_bitmap("portraits/chatbox_sprite.png");
-  al_draw_bitmap(box, 0, 0, 0);
+  al_draw_bitmap(chatbox, 0, 0, 0);
 
   if (portrait) {
     al_draw_scaled_bitmap(portrait, 0, 0, al_get_bitmap_width(portrait),
                           al_get_bitmap_height(portrait), x + padding,
                           y + padding, portrait_size, portrait_size, 0);
+  } else if (!portrait) {
+    printf("Error: fail to load portrait!\n");
+    exit(1);
+  }
+
+  if (!font_std) {
+    fprintf(stderr, "Error: font_std isn't loading!\n");
+    exit(1);
   }
 
   if (name) {
@@ -127,7 +134,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
   }
 
-  ExplodeDlgBox(box);
+  // ExplodeDlgBox(box);
   // ExplodeDlgBox(portrait);
 }
 
@@ -147,16 +154,14 @@ void DrawTopicMenu(NPC *npc, int selected) {
   float box_w = 150, box_h = npc->num_topic * 30 + 20;
   ALLEGRO_COLOR color;
   InitStdFont();
-  ALLEGRO_FONT *title = font_std;
 
   // Topic Menu
   al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
                            al_map_rgb(0, 0, 49));
   al_draw_rectangle(x - 10, y - 20, x + box_w, y + box_h,
                     al_map_rgb(82, 82, 255), 2);
-  al_draw_text(title, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
-
-  // Topic Loader
+  al_draw_text(font_std, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
+  // Topic Scroller
   for (int i = 0; i < npc->num_topic; i++) {
     color =
         (i == selected) ? al_map_rgb(255, 255, 0) : al_map_rgb(255, 255, 255);
@@ -174,11 +179,14 @@ void DrawTopicMenu(NPC *npc, int selected) {
 //==========================================================================
 
 void LoadDlg(NPC *npc, const char *topic) {
+  if (npc->intro_dlg) {
+    DlgBox(npc->portrait_id, npc->name, npc->intro_dlg);
+  }
   for (int i = 0; i < npc->num_topic; i++) {
     if (strcmp(npc->topics[i].topic, topic) == 0) {
       DlgBox(npc->portrait_id, npc->name, npc->topics[i].text);
       if (!npc->portrait_id) {
-        fprintf(stderr, "Aviso: NPC '%s' está sem retrato\n", npc->name);
+        fprintf(stderr, "Warning: NPC '%s' is without portrait\n", npc->name);
         exit(1);
       }
       return;
@@ -187,9 +195,29 @@ void LoadDlg(NPC *npc, const char *topic) {
 }
 
 void InitStdFont() {
+  const char *path = "fonts/Steelflight.ttf";
+  FILE *f = fopen(path, "r");
+
+  if (!f) {
+    perror("Error from fopen");
+    fprintf(stderr, "Font doesn't found: %s\n", path);
+    exit(1);
+  }
+  fclose(f);
+
   font_std = al_load_ttf_font("fonts/Steelflight.ttf", 14, 0);
   if (!font_std) {
-    printf("Erro: falha ao carregar fonte!\n");
+    printf("Error: fail to load font_std!\n");
+    exit(1);
+  }
+  font_color = al_map_rgb(255, 255, 255);
+  name_color = al_map_rgb(255, 255, 0);
+}
+
+void InitChatboxBitmap() {
+  chatbox = al_load_bitmap("portraits/chatbox_sprite.png");
+  if (!chatbox) {
+    fprintf(stderr, "Error: fail to load chatbox_sprite.png\n");
     exit(1);
   }
 }

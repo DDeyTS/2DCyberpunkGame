@@ -1,7 +1,7 @@
 //**************************************************************************
 //**
 //** File: main.c (CyberSP Project)
-//** Purpose: Main game stuff
+//** Purpose: Main Game stuff
 //** Last Update: 26-07-2025
 //** Author: DDeyTS
 //**
@@ -12,6 +12,9 @@
 #include "collision.h"
 #include "dialoguesys.h"
 #include "tile_render.h"
+#include <allegro5/allegro_font.h>
+#include <allegro5/bitmap.h>
+#include <allegro5/events.h>
 
 tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
@@ -34,10 +37,12 @@ int main() {
 
   if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
       !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon()) {
-    fprintf(stderr, "Falha ao inicializar Allegro\n");
+    fprintf(stderr, "Fail to initialize Allegro\n");
     return 1;
   }
-  BitmapInit();
+  InitStdFont();
+  InitChatboxBitmap();
+  InitBitmap();
 
   //======================
   //
@@ -60,11 +65,12 @@ int main() {
   //======================
 
   bool dlg_open = true;
+  bool show_intro = true;
   int num_dlg = 4;
   npc = CreateNpc("Jefferson", num_dlg);
   npc->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
   if (!npc->portrait_id) {
-    fprintf(stderr, "Erro: não foi possível carregar retrato\n");
+    printf("Error: fail to load portrait\n");
     exit(1);
   }
   FillTopic(
@@ -87,6 +93,7 @@ int main() {
       "were seeing some hot lights tearing up the sky, you're there.");
 
   int selected_topic = 0;
+  int active_topic = -1;
   bool choosing_topic = true;
 
   //======================
@@ -161,32 +168,44 @@ int main() {
       redraw = true;
     }
 
-    // Dialog Trigger Button
+    // Dialog Trigger Button (for debugging)
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (keys[ALLEGRO_KEY_SPACE]) {
         dlg_open = true;
         choosing_topic = true;
+        show_intro = true;
       }
     }
 
-    // Topic Selector
+    // Dialog Controller
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+      if (dlg_open && show_intro && keys[ALLEGRO_KEY_ENTER]) {
+        show_intro = false;
+      }
       if (dlg_open && choosing_topic) {
-        if (ev.keyboard.keycode == ALLEGRO_KEY_DOWN) {
+        if (keys[ALLEGRO_KEY_DOWN]) {
           selected_topic++;
           if (selected_topic >= npc->num_topic)
             selected_topic = 0;
         }
-        if (ev.keyboard.keycode == ALLEGRO_KEY_UP) {
+        if (keys[ALLEGRO_KEY_UP]) {
           selected_topic--;
           if (selected_topic < 0)
             selected_topic = npc->num_topic - 1;
         }
-        if (ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
+        if (keys[ALLEGRO_KEY_ENTER]) {
+          active_topic = selected_topic;
           choosing_topic = false;
         }
-      } else if (!choosing_topic && ev.keyboard.keycode == ALLEGRO_KEY_ENTER) {
+      } else if (!choosing_topic) {
+        if (keys[ALLEGRO_KEY_UP] || keys[ALLEGRO_KEY_DOWN]) {
+          choosing_topic = true;
+          active_topic = -1;
+        }
+      } else if (keys[ALLEGRO_KEY_ENTER]) {
         dlg_open = false; // close dialogue if ENTER is pressed again
+        active_topic = -1;
+        show_intro = false;
       }
     }
 
@@ -213,13 +232,22 @@ int main() {
       BanditDraw();
 
       if (dlg_open) {
-        if (choosing_topic) {
-          DrawTopicMenu(npc, selected_topic);
-        } else {
+        if (show_intro) {
+          DlgBox(npc->portrait_id, npc->name, npc->intro_dlg);
+        } else if (active_topic >= 0) {
           const char *topic = npc->topics[selected_topic].topic;
           LoadDlg(npc, topic);
         }
+        DrawTopicMenu(npc, selected_topic);
       }
+      // if (dlg_open) {
+      //   if (choosing_topic) {
+      //     DrawTopicMenu(npc, selected_topic);
+      //   } else {
+      //     const char *topic = npc->topics[selected_topic].topic;
+      //     LoadDlg(npc, topic);
+      //   }
+      // }
 
       al_flip_display();
       redraw = false;
@@ -235,7 +263,8 @@ int main() {
   al_destroy_display(disp);
 
   // Dialog Box
-  ExplodeDlgBox(npc->portrait_id);
+  // ExplodeDlgBox(npc->portrait_id);
+  al_destroy_bitmap(npc->portrait_id);
   for (int i = 0; i < npc->num_topic; i++) {
     free((char *)npc->topics[i].topic);
     free((char *)npc->topics[i].text);
@@ -246,7 +275,10 @@ int main() {
   // Map
   tmx_map_free(map);
 
-  al_destroy_font(font_std);
+  if (font_std) {
+    al_destroy_font(font_std);
+    font_std = NULL;
+  }
 
   // Sprites
   BitmapExplode();
