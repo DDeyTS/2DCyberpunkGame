@@ -23,16 +23,13 @@ typedef struct {
 typedef struct {
   ALLEGRO_BITMAP *portrait_id;
   const char *name;
-  char **dialog;
+  // char **dialog;
   int num_topic;
   Topic *topics;
   int num_dlg;
-  // char *intro_dlg;
 } NPC;
 
-// extern NPC dlg;
 extern NPC *npc[];
-// extern NPC *clowngirl;
 extern ALLEGRO_FONT *font_std;
 extern ALLEGRO_COLOR font_color;
 extern ALLEGRO_COLOR name_color;

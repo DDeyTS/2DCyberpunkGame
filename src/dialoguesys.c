@@ -9,7 +9,7 @@
 
 #include "dialoguesys.h"
 
-NPC *npc[50];
+NPC *npc[40];
 ALLEGRO_FONT *font_std;
 static ALLEGRO_FONT *font_name;
 ALLEGRO_COLOR font_color;

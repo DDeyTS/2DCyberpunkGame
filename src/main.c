@@ -11,12 +11,9 @@
 #include "bitmap.h"
 #include "collision.h"
 #include "dialoguesys.h"
+#include "textdat.h"
 #include "tile_render.h"
-#include <allegro5/bitmap_io.h>
-#include <allegro5/events.h>
-#include <allegro5/mouse.h>
 
-int hovered_topic;
 tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
 ALLEGRO_EVENT_QUEUE *queue;
@@ -69,39 +66,8 @@ int main() {
 
   bool dlg_open = true;
   bool show_intro = true;
-  // int num_topic = 4;
   int speaker = 0;
-  npc[0] = CreateNpc("Jefferson", 4);
-  npc[0]->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
-  if (!npc[0]->portrait_id) {
-    printf("Error: fail to load portrait\n");
-    exit(1);
-  }
-  FillIntro(npc[0], "What's up, bro. Are you okay?");
-  FillTopic(
-      npc[0], 0, "Drugs",
-      "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
-      "course, leavin' behind the cooldown you suffers after the effect "
-      "is gone. Bad stuff, however, it's like a violent punch in your "
-      "pancreas.");
-  FillTopic(npc[0], 1, "Dolls",
-            "They're everywhere, bro. In every street. They know 'bout "
-            "absolutely everything inside this district!");
-  FillTopic(npc[0], 2, "Firearms",
-            "If ya wanna some guns to brighten your night up, talks with "
-            "Ronaldo. He has a lot of stuff to show ya.");
-  FillTopic(
-      npc[0], 3, "Bettingshop",
-      "Alright. I know one very close o' here. Just go down the slum and if ya "
-      "were seeing some hot lights tearing up the sky, you're there.");
-
-  npc[1] = CreateNpc("Clowngirl", 2);
-  npc[1]->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
-  FillIntro(npc[1], "Helloooooooo, guys!");
-  FillTopic(npc[1], 0, "Who are you?",
-            "Who am I? Do ya really want to ask for that? I'm a clown, dumb!");
-  FillTopic(npc[1], 1, "Funny", "Yeah, yeah... I'm fuckin' funny. Very, very funny!");
-
+  NpcLoader(npc);
   int selected_topic = 0;
   int active_topic = -1;
   bool choosing_topic = true;
@@ -226,13 +192,17 @@ int main() {
         show_intro = false;
       }
     }
-    
-    // NPC changer (for debugging)
+
+    // NPC Changer (for debugging)
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (keys[ALLEGRO_KEY_1]) {
+        speaker++;
+        if (speaker == 4) {
+          perror("You has exceed the NPC limit.\n");
+          exit(1);
+        }
+      } else if (keys[ALLEGRO_KEY_2] && speaker >= 0) {
         speaker = 0;
-      } else if (keys[ALLEGRO_KEY_2]) {
-        speaker = 1;
       }
     }
 
