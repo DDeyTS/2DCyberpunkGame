@@ -31,7 +31,7 @@ typedef struct {
 } NPC;
 
 // extern NPC dlg;
-extern NPC *npc;
+extern NPC *npc[];
 // extern NPC *clowngirl;
 extern ALLEGRO_FONT *font_std;
 extern ALLEGRO_COLOR font_color;

@@ -12,6 +12,7 @@
 #include "collision.h"
 #include "dialoguesys.h"
 #include "tile_render.h"
+#include <allegro5/bitmap_io.h>
 #include <allegro5/events.h>
 #include <allegro5/mouse.h>
 
@@ -68,30 +69,38 @@ int main() {
 
   bool dlg_open = true;
   bool show_intro = true;
-  int num_topic = 4;
-  npc = CreateNpc("Jefferson", num_topic);
-  npc->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
-  if (!npc->portrait_id) {
+  // int num_topic = 4;
+  int speaker = 0;
+  npc[0] = CreateNpc("Jefferson", 4);
+  npc[0]->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
+  if (!npc[0]->portrait_id) {
     printf("Error: fail to load portrait\n");
     exit(1);
   }
-  FillIntro(npc, "What's up, bro. Are you okay?");
+  FillIntro(npc[0], "What's up, bro. Are you okay?");
   FillTopic(
-      npc, 0, "Drugs",
+      npc[0], 0, "Drugs",
       "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
       "course, leavin' behind the cooldown you suffers after the effect "
       "is gone. Bad stuff, however, it's like a violent punch in your "
       "pancreas.");
-  FillTopic(npc, 1, "Dolls",
+  FillTopic(npc[0], 1, "Dolls",
             "They're everywhere, bro. In every street. They know 'bout "
             "absolutely everything inside this district!");
-  FillTopic(npc, 2, "Firearms",
+  FillTopic(npc[0], 2, "Firearms",
             "If ya wanna some guns to brighten your night up, talks with "
             "Ronaldo. He has a lot of stuff to show ya.");
   FillTopic(
-      npc, 3, "Bettingshop",
+      npc[0], 3, "Bettingshop",
       "Alright. I know one very close o' here. Just go down the slum and if ya "
       "were seeing some hot lights tearing up the sky, you're there.");
+
+  npc[1] = CreateNpc("Clowngirl", 2);
+  npc[1]->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
+  FillIntro(npc[1], "Helloooooooo, guys!");
+  FillTopic(npc[1], 0, "Who are you?",
+            "Who am I? Do ya really want to ask for that? I'm a clown, dumb!");
+  FillTopic(npc[1], 1, "Funny", "Yeah, yeah... I'm fuckin' funny. Very, very funny!");
 
   int selected_topic = 0;
   int active_topic = -1;
@@ -145,7 +154,7 @@ int main() {
   // defines callbacks for libTMX
   tmx_img_load_func = AllegTexLoader;
   tmx_img_free_func = AllegTexFree;
-  map = tmx_load("tiles/tile_garbage/debugavenue.tmx");
+  map = tmx_load("tiles/debugavenue.tmx");
   if (!map) {
     tmx_perror("Cannot load map");
     return 1;
@@ -182,7 +191,7 @@ int main() {
       }
     }
 
-    // Dialog Controller
+    // Dialogue Controller: Keyboard
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (dlg_open && show_intro && keys[ALLEGRO_KEY_ENTER]) {
         show_intro = false;
@@ -191,13 +200,13 @@ int main() {
       if (dlg_open && choosing_topic) {
         if (keys[ALLEGRO_KEY_DOWN]) {
           selected_topic++;
-          if (selected_topic >= npc->num_topic)
+          if (selected_topic >= npc[speaker]->num_topic)
             selected_topic = 0;
         }
         if (keys[ALLEGRO_KEY_UP]) {
           selected_topic--;
           if (selected_topic < 0)
-            selected_topic = npc->num_topic - 1;
+            selected_topic = npc[speaker]->num_topic - 1;
         }
         if (keys[ALLEGRO_KEY_ENTER]) {
           active_topic = selected_topic;
@@ -217,7 +226,17 @@ int main() {
         show_intro = false;
       }
     }
+    
+    // NPC changer (for debugging)
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+      if (keys[ALLEGRO_KEY_1]) {
+        speaker = 0;
+      } else if (keys[ALLEGRO_KEY_2]) {
+        speaker = 1;
+      }
+    }
 
+    // Dialogue Controller: Mouse
     if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
          ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
         dlg_open) {
@@ -234,7 +253,7 @@ int main() {
         int topic_w = 150; // area able to click on
         int topic_h = spacing;
 
-        for (int i = 0; i < npc->num_topic; i++) {
+        for (int i = 0; i < npc[speaker]->num_topic; i++) {
           int top_y = ty + i * spacing;
 
           if (mouse_x >= tx && mouse_x <= tx + topic_w && mouse_y >= top_y &&
@@ -279,12 +298,13 @@ int main() {
 
       if (dlg_open) {
         if (show_intro) {
-          DlgBox(npc->portrait_id, npc->name, npc->topics->intro_text);
+          DlgBox(npc[speaker]->portrait_id, npc[speaker]->name,
+                 npc[speaker]->topics->intro_text);
         } else if (active_topic >= 0) {
-          const char *topic = npc->topics[selected_topic].topic;
-          LoadDlg(npc, topic);
+          const char *topic = npc[speaker]->topics[selected_topic].topic;
+          LoadDlg(npc[speaker], topic);
         }
-        DrawTopicMenu(npc, selected_topic);
+        DrawTopicMenu(npc[speaker], selected_topic);
       }
 
       al_flip_display();
@@ -301,13 +321,13 @@ int main() {
   al_destroy_display(disp);
 
   // Dialog Box
-  al_destroy_bitmap(npc->portrait_id);
-  for (int i = 0; i < npc->num_topic; i++) {
-    free((char *)npc->topics[i].topic);
-    free((char *)npc->topics[i].text);
+  al_destroy_bitmap(npc[speaker]->portrait_id);
+  for (int i = 0; i < npc[speaker]->num_topic; i++) {
+    free((char *)npc[speaker]->topics[i].topic);
+    free((char *)npc[speaker]->topics[i].text);
   }
-  free(npc->topics);
-  free(npc);
+  free(npc[speaker]->topics);
+  free(npc[speaker]);
 
   // Map
   tmx_map_free(map);
