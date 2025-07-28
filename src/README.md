@@ -52,7 +52,9 @@ CyberSP_Project/
 
 > **Update 3**: the topics selector is working!
 
+> **Update 4**: the player, via keyboard or mouse, can choose what topic he want to ask for. 
+
 
 _First Feature Update - Beginning of July 2025._
 
-_Last Feature Update - July 23, 2025._
+_Last Feature Update - July 28, 2025._
