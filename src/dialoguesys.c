@@ -2,16 +2,17 @@
 //**
 //** File: dialogue_sys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 26-07-2025
+//** Last Update: 27-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 #include "dialoguesys.h"
 
-NPC *clowngirl;
+// NPC *clowngirl;
 NPC *npc;
 ALLEGRO_FONT *font_std;
+static ALLEGRO_FONT *font_name;
 ALLEGRO_COLOR font_color;
 ALLEGRO_COLOR name_color;
 static ALLEGRO_BITMAP *chatbox = NULL;
@@ -46,9 +47,20 @@ NPC *CreateNpc(const char *name, int num_topic) {
 //==========================================================================
 
 void FillTopic(NPC *npc, int index, const char *topic, const char *text) {
-  npc->intro_dlg = strdup("What's up, bro. What do ya want from me?");
   npc->topics[index].topic = strdup(topic);
   npc->topics[index].text = strdup(text);
+}
+
+//==========================================================================
+//
+//    FillIntro
+//
+//    Stores the NPC's introduction text.
+//
+//==========================================================================
+
+void FillIntro(NPC *npc, const char *text) {
+  npc->topics->intro_text = strdup(text);
 }
 
 //==========================================================================
@@ -58,12 +70,14 @@ void FillTopic(NPC *npc, int index, const char *topic, const char *text) {
 //==========================================================================
 
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
-  // Box sizes
+  // Box attributes
   float box_w = 640;
   float box_h = 125;
   float x = 0, y = 0;
+
   // Portrait attributes
   float portrait_size = 96;
+
   // Text attributes
   float padding = 10;
   float text_x = x + portrait_size + 2 * padding;
@@ -84,13 +98,8 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     exit(1);
   }
 
-  if (!font_std) {
-    fprintf(stderr, "Error: font_std isn't loading!\n");
-    exit(1);
-  }
-
   if (name) {
-    al_draw_text(font_std, name_color, x + portrait_size + 2 * padding,
+    al_draw_text(font_name, name_color, x + portrait_size + 2 * padding,
                  y + padding, 0, name);
   }
 
@@ -133,9 +142,6 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   if (line_count < max_lines && strlen(line) > 0) {
     al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
   }
-
-  // ExplodeDlgBox(box);
-  // ExplodeDlgBox(portrait);
 }
 
 //==========================================================================
@@ -179,9 +185,10 @@ void DrawTopicMenu(NPC *npc, int selected) {
 //==========================================================================
 
 void LoadDlg(NPC *npc, const char *topic) {
-  if (npc->intro_dlg) {
-    DlgBox(npc->portrait_id, npc->name, npc->intro_dlg);
+  if (npc->topics->intro_text) {
+    DlgBox(npc->portrait_id, npc->name, npc->topics->intro_text);
   }
+
   for (int i = 0; i < npc->num_topic; i++) {
     if (strcmp(npc->topics[i].topic, topic) == 0) {
       DlgBox(npc->portrait_id, npc->name, npc->topics[i].text);
@@ -194,6 +201,14 @@ void LoadDlg(NPC *npc, const char *topic) {
   }
 }
 
+//==========================================================================
+//
+//    InitStdFont
+//
+//    Loads and run the game's standard fonts.
+//
+//==========================================================================
+
 void InitStdFont() {
   const char *path = "fonts/Steelflight.ttf";
   FILE *f = fopen(path, "r");
@@ -205,14 +220,23 @@ void InitStdFont() {
   }
   fclose(f);
 
-  font_std = al_load_ttf_font("fonts/Steelflight.ttf", 14, 0);
+  font_std = al_load_ttf_font("fonts/Steelflight.ttf", 13, 0);
   if (!font_std) {
     printf("Error: fail to load font_std!\n");
     exit(1);
   }
+
+  font_name = al_load_ttf_font("fonts/Steelflight.ttf", 14, 0);
+
   font_color = al_map_rgb(255, 255, 255);
   name_color = al_map_rgb(255, 255, 0);
 }
+
+//==========================================================================
+//
+//    InitChatboxBitmap
+//
+//==========================================================================
 
 void InitChatboxBitmap() {
   chatbox = al_load_bitmap("portraits/chatbox_sprite.png");
@@ -221,13 +245,3 @@ void InitChatboxBitmap() {
     exit(1);
   }
 }
-
-//==========================================================================
-//
-//    ExplodeDlgBox
-//
-//    Destroys every bitmap made in it.
-//
-//==========================================================================
-
-void ExplodeDlgBox(ALLEGRO_BITMAP *stuff) { al_destroy_bitmap(stuff); }

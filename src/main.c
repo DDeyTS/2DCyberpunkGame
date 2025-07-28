@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main Game stuff
-//** Last Update: 26-07-2025
+//** Last Update: 27-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -12,9 +12,6 @@
 #include "collision.h"
 #include "dialoguesys.h"
 #include "tile_render.h"
-#include <allegro5/allegro_font.h>
-#include <allegro5/bitmap.h>
-#include <allegro5/events.h>
 
 tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
@@ -66,24 +63,23 @@ int main() {
 
   bool dlg_open = true;
   bool show_intro = true;
-  int num_dlg = 4;
-  npc = CreateNpc("Jefferson", num_dlg);
+  int num_topic = 4;
+  npc = CreateNpc("Jefferson", num_topic);
   npc->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
   if (!npc->portrait_id) {
     printf("Error: fail to load portrait\n");
     exit(1);
   }
+  FillIntro(npc, "What's up, bro. Are you okay?");
   FillTopic(
       npc, 0, "Drugs",
       "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
       "course, leavin' behind the cooldown you suffers after the effect "
       "is gone. Bad stuff, however, it's like a violent punch in your "
       "pancreas.");
-  // LoadDlg(npc, "Dragon");
   FillTopic(npc, 1, "Dolls",
             "They're everywhere, bro. In every street. They know 'bout "
             "absolutely everything inside this district!");
-  // LoadDlg(npc, "Clown");
   FillTopic(npc, 2, "Firearms",
             "If ya wanna some guns to brighten your night up, talks with "
             "Ronaldo. He has a lot of stuff to show ya.");
@@ -233,21 +229,13 @@ int main() {
 
       if (dlg_open) {
         if (show_intro) {
-          DlgBox(npc->portrait_id, npc->name, npc->intro_dlg);
+          DlgBox(npc->portrait_id, npc->name, npc->topics->intro_text);
         } else if (active_topic >= 0) {
           const char *topic = npc->topics[selected_topic].topic;
           LoadDlg(npc, topic);
         }
         DrawTopicMenu(npc, selected_topic);
       }
-      // if (dlg_open) {
-      //   if (choosing_topic) {
-      //     DrawTopicMenu(npc, selected_topic);
-      //   } else {
-      //     const char *topic = npc->topics[selected_topic].topic;
-      //     LoadDlg(npc, topic);
-      //   }
-      // }
 
       al_flip_display();
       redraw = false;
@@ -263,7 +251,6 @@ int main() {
   al_destroy_display(disp);
 
   // Dialog Box
-  // ExplodeDlgBox(npc->portrait_id);
   al_destroy_bitmap(npc->portrait_id);
   for (int i = 0; i < npc->num_topic; i++) {
     free((char *)npc->topics[i].topic);
