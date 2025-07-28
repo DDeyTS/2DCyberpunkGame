@@ -1,15 +1,14 @@
 //**************************************************************************
 //**
-//** File: dialogue_sys.c (CyberSP Project)
+//** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 27-07-2025
+//** Last Update: 28-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 #include "dialoguesys.h"
 
-// NPC *clowngirl;
 NPC *npc;
 ALLEGRO_FONT *font_std;
 static ALLEGRO_FONT *font_name;

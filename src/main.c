@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main Game stuff
-//** Last Update: 27-07-2025
+//** Last Update: 28-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -12,7 +12,10 @@
 #include "collision.h"
 #include "dialoguesys.h"
 #include "tile_render.h"
+#include <allegro5/events.h>
+#include <allegro5/mouse.h>
 
+int hovered_topic;
 tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
 ALLEGRO_EVENT_QUEUE *queue;
@@ -33,7 +36,8 @@ int main() {
   //======================
 
   if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
-      !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon()) {
+      !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon() ||
+      !al_install_mouse()) {
     fprintf(stderr, "Fail to initialize Allegro\n");
     return 1;
   }
@@ -52,6 +56,7 @@ int main() {
   timer = al_create_timer(1.0 / 30.0);
   al_register_event_source(queue, al_get_display_event_source(disp));
   al_register_event_source(queue, al_get_timer_event_source(timer));
+  al_register_event_source(queue, al_get_mouse_event_source());
   al_register_event_source(queue, al_get_keyboard_event_source());
   al_start_timer(timer);
 
@@ -161,6 +166,10 @@ int main() {
       running = 0;
 
     if (ev.type == ALLEGRO_EVENT_TIMER) {
+      BanditMove(keys, &spr.px, &spr.py, sp);
+      BanditDirection(keys, &spr.frame_w, &spr.frame_h);
+      al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+
       redraw = true;
     }
 
@@ -178,6 +187,7 @@ int main() {
       if (dlg_open && show_intro && keys[ALLEGRO_KEY_ENTER]) {
         show_intro = false;
       }
+
       if (dlg_open && choosing_topic) {
         if (keys[ALLEGRO_KEY_DOWN]) {
           selected_topic++;
@@ -192,22 +202,62 @@ int main() {
         if (keys[ALLEGRO_KEY_ENTER]) {
           active_topic = selected_topic;
           choosing_topic = false;
+          show_intro = false;
         }
       } else if (!choosing_topic) {
         if (keys[ALLEGRO_KEY_UP] || keys[ALLEGRO_KEY_DOWN]) {
           choosing_topic = true;
           active_topic = -1;
         }
-      } else if (keys[ALLEGRO_KEY_ENTER]) {
+      }
+
+      if (keys[ALLEGRO_KEY_ESCAPE]) {
         dlg_open = false; // close dialogue if ENTER is pressed again
         active_topic = -1;
         show_intro = false;
       }
     }
 
-    BanditMove(keys, &spr.px, &spr.py, sp);
-    BanditDirection(keys, &spr.frame_w, &spr.frame_h);
-    al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+    if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
+         ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
+        dlg_open) {
+
+      if (!choosing_topic && ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
+        // it does nothing, just ignore this event
+      } else {
+        int mouse_x = ev.mouse.x;
+        int mouse_y = ev.mouse.y;
+
+        int tx = 50;       // topics' axes
+        int ty = 150;      // topics' initial axes
+        int spacing = 20;  // vertical space between topics
+        int topic_w = 150; // area able to click on
+        int topic_h = spacing;
+
+        for (int i = 0; i < npc->num_topic; i++) {
+          int top_y = ty + i * spacing;
+
+          if (mouse_x >= tx && mouse_x <= tx + topic_w && mouse_y >= top_y &&
+              mouse_y <= top_y + topic_h) {
+            selected_topic = i;
+
+            if (!choosing_topic) {
+              choosing_topic = true;
+              active_topic = -1;
+            }
+
+            if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN &&
+                ev.mouse.button == 1) {
+              active_topic = selected_topic;
+              choosing_topic = false;
+              show_intro = false;
+            }
+
+            break;
+          }
+        }
+      }
+    }
 
     // if (map != NULL) {
     //   printf("we fucking good\n");
