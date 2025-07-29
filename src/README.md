@@ -4,6 +4,7 @@ A map to travel through my own game files.
 
 ```
 CyberSP_Project/
+├── fonts
 ├── npc_portraits
 ├── tiles
 ├── sprites
