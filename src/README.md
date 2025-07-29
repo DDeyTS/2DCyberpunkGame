@@ -4,11 +4,11 @@ A map to travel through my own game files.
 
 ```
 CyberSP_Project/
-├── fonts
-├── npc_portraits
-├── tiles
-├── sprites
 ├── src/
+│   ├── fonts
+│   ├── npc_portraits
+│   ├── sprites
+│   ├── tiles
 │   ├── bitmap.c        # sprites domain
 │   ├── bitmap.h
 │   ├── collision.c     # walls & triggers logic
