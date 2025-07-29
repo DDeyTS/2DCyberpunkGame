@@ -28,10 +28,6 @@ void NpcLoader(NPC *npc[]) {
   */
   npc[0] = CreateNpc("Jefferson", 4);
   npc[0]->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
-  if (!npc[0]->portrait_id) {
-    printf("Error: fail to load portrait\n");
-    exit(1);
-  }
   FillIntro(npc[0], "What's up, bro. Are you okay?");
   FillTopic(
       npc[0], 0, "Drugs",
@@ -44,7 +40,7 @@ void NpcLoader(NPC *npc[]) {
             "absolutely everything inside this district!");
   FillTopic(npc[0], 2, "Firearms",
             "If ya wanna some guns to brighten your night up, talks with "
-            "Ronaldo. He has a lot of stuff to show ya.");
+            "|Ronaldo. He has a lot of stuff to show ya.");
   FillTopic(
       npc[0], 3, "Bettingshop",
       "Alright. I know one very close o' here. Just go down the slum and if ya "
@@ -81,14 +77,14 @@ void NpcLoader(NPC *npc[]) {
   FillTopic(npc[2], 0, "Doll",
             "They can be all you want to play with, babe. A tall man, a young "
             "woman... After that, you delight of their bodies like never did "
-            "before. Of course, for a price. Always it has a price.");
+            "before. Of course, for a |price. Always it has a price.");
 
   /*
     ID 3, “Cinder”.
-    Cinder run nearly every the dolls in the metroplex. She is wild and
-    audacious, testing the government's limits to take control of her district
-    that is dominated by privated forces. She also has a big appeal for men that
-    has an iron fist to retain what is yours.
+    Cinder run nearly all the dolls in the metroplex. She is wild and
+    audacious, testing the government's limits to take back the control of her
+    district that is dominated by privated forces. She also has a big appeal for
+    men that has an iron fist to retain what is yours.
   */
   npc[3] = CreateNpc("Cinder", 1);
   npc[3]->portrait_id = al_load_bitmap("portraits/cinder_portrait.png");
@@ -96,7 +92,22 @@ void NpcLoader(NPC *npc[]) {
                     "perv’ or you'll tell something? C'mon. I won't bite you.");
   FillTopic(
       npc[3], 0, "Bettingshop",
-      "That cursed place? The kingdom of cash. I hang out with a corp’ once; "
+      "That cursed place? The |kingdom |of |cash. I hang out with a |corp’ once; "
       "he was disgusting, honestly. Anybody who goes there hardly can keep the "
       "bank account filled. If you're wanna step on there, take care.");
+
+  /*
+     ID 4, “Cheeks”.
+     Big fan of rock ‘n’ roll, Cheeks is a good vibes singer who throw curses at
+     the actual metroplex's government. Crowns of followers see him as a choisen
+     one to free everyone of the megacorps' chains.
+  */
+  npc[4] = CreateNpc("Cheeks", 1);
+  npc[4]->portrait_id = al_load_bitmap("portraits/bigcheeks_portrait.png");
+  FillIntro(npc[4], "What's uuuuup, my friend! How can I help ya today?");
+  FillTopic(
+      npc[4], 0, "Nightclub",
+      "There are a lot of over there. Follow your sixth sense, dude, follow it "
+      "to the end of the horizon. The sun takes time to be up on the iron "
+      "color sky. Iron sky... Wow, it could gimme an awesome song name.");
 }

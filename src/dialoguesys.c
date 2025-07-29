@@ -15,6 +15,7 @@ static ALLEGRO_FONT *font_name;
 ALLEGRO_COLOR font_color;
 ALLEGRO_COLOR name_color;
 static ALLEGRO_BITMAP *chatbox = NULL;
+static ALLEGRO_COLOR highlight_color;
 
 void InitStdFont();
 void InitChatboxBitmap();
@@ -111,31 +112,71 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   strncpy(buffer, text, sizeof(buffer));
   buffer[sizeof(buffer) - 1] = '\0';
 
-  // Get the first word of the text
-  char *word = strtok(buffer, " ");
-  char line[1024] = "";
+  char *word = strtok(buffer, " "); // put spaces between each word
+  char line[1024] = "";             // stores full line
+  float cursor_x = text_x;          // initial position to write
 
   while (word != NULL && line_count < max_lines) {
-    char temp[1024]; // temporary buffer
-    if (strlen(line) == 0) {
-      snprintf(temp, sizeof(temp), "%s", word);
-    } else {
-      snprintf(temp, sizeof(temp), "%s %s", line, word);
+    bool is_highlight = false;
+    const char *draw_word = word;
+
+    if (word[0] == '|') {
+      is_highlight = true;
+      draw_word = word + 1; // ignores '|'
     }
-    if (al_get_text_width(font_std, temp) > safe_width) {
-      // Draws current line
-      al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
+
+    // line break
+    int word_width = al_get_text_width(font_std, draw_word);
+    int space_width = al_get_text_width(font_std, " ");
+
+    if (cursor_x + word_width > text_x + safe_width) {
+      // new line
       line_y += line_height;
+      cursor_x = text_x;
       line_count++;
-      snprintf(line, sizeof(line), "%s",
-               word); // Starts new line with current word
-    } else {
-      snprintf(line, sizeof(line), "%s",
-               temp); // Continues accumulating words
+      if (line_count >= max_lines)
+        break;
     }
+
+    al_draw_text(font_std, is_highlight ? highlight_color : font_color,
+                 cursor_x, line_y + 20, 0, draw_word);
+
+    // updates cursor to draw the current word. That way, the next word will
+    // come in the sequence with a space betweent it.
+    cursor_x += word_width + space_width;
 
     word = strtok(NULL, " ");
   }
+
+  /*
+    This is the old text printer. It's here for upload reasons
+    in case of everything blowing up!
+  */
+  // // Get the first word of the text
+  // char *word = strtok(buffer, " ");
+  // char line[1024] = "";
+  //
+  // while (word != NULL && line_count < max_lines) {
+  //   char temp[1024]; // temporary buffer
+  //   if (strlen(line) == 0) {
+  //     snprintf(temp, sizeof(temp), "%s", word);
+  //   } else {
+  //     snprintf(temp, sizeof(temp), "%s %s", line, word);
+  //   }
+  //   if (al_get_text_width(font_std, temp) > safe_width) {
+  //     // Draws current line
+  //     al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
+  //     line_y += line_height;
+  //     line_count++;
+  //     snprintf(line, sizeof(line), "%s",
+  //              word); // Starts new line with current word
+  //   } else {
+  //     snprintf(line, sizeof(line), "%s",
+  //              temp); // Continues accumulating words
+  //   }
+  //
+  //   word = strtok(NULL, " ");
+  // }
 
   // Draws the last line
   if (line_count < max_lines && strlen(line) > 0) {
@@ -229,6 +270,7 @@ void InitStdFont() {
 
   font_color = al_map_rgb(255, 255, 255);
   name_color = al_map_rgb(255, 255, 0);
+  highlight_color = al_map_rgb(255, 215, 0);
 }
 
 //==========================================================================
