@@ -18,6 +18,8 @@ CyberSP_Project/
 │   ├── dialoguesys.h
 │   ├── main.c          # game loop
 |   ├── main.h
+│   └── textdat.c
+│   └── textdat.h
 │   ├── tile_render.c   # libTMX map render
 │   └── tile_render.h
 ├── Makefile
