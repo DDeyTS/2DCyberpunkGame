@@ -4,11 +4,9 @@ A map to travel through my own game files.
 
 ```
 CyberSP_Project/
-├── sprites
-│   └── bandit_sprites
 ├── npc_portraits
-│   └── random_npcs
 ├── tiles
+├── sprites
 ├── src/
 │   ├── bitmap.c        # sprites domain
 │   ├── bitmap.h
@@ -18,12 +16,12 @@ CyberSP_Project/
 │   ├── dialoguesys.h
 │   ├── main.c          # game loop
 |   ├── main.h
-│   └── textdat.c
-│   └── textdat.h
+│   ├── textdat.c
+│   ├── textdat.h
 │   ├── tile_render.c   # libTMX map render
-│   └── tile_render.h
-├── Makefile
-└── README.md
+│   ├── tile_render.h
+│   ├── Makefile
+│   └── README.md
 ```
 # Features List
 **First feature**: finding out an adequated way to make an isometric movement.
