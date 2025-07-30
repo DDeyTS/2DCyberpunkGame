@@ -2,7 +2,7 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 28-07-2025
+//** Last Update: 30-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -12,14 +12,17 @@
 NPC *npc[40];
 ALLEGRO_FONT *font_std;
 static ALLEGRO_FONT *font_name;
+ALLEGRO_FONT *font_subtitle;
 ALLEGRO_COLOR font_color;
 ALLEGRO_COLOR name_color;
-static ALLEGRO_BITMAP *chatbox = NULL;
+ALLEGRO_BITMAP *chatbox = NULL;
+ALLEGRO_BITMAP *protagonist = NULL;
 static ALLEGRO_COLOR highlight_color;
 
 void InitStdFont();
 void InitChatboxBitmap();
 void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
+void ExplodeFont();
 
 //==========================================================================
 //
@@ -72,22 +75,25 @@ void FillIntro(NPC *npc, const char *text) {
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   // Box attributes
   float box_w = 640;
-  float box_h = 125;
+  float box_h = 200;
   float x = 0, y = 0;
 
   // Portrait attributes
-  float portrait_size = 96;
+  float portrait_size = 128;
 
   // Text attributes
-  float padding = 10;
+  float padding = 30;
   float text_x = x + portrait_size + 2 * padding;
   float line_y = y + padding;
-  float text_max_w = (x + box_w) - text_x - padding;
+  float text_max_w = (x + box_w) - text_x - padding + 30;
   float text_max_h = (y + box_h) - line_y - padding;
   float safe_width = text_max_w - 10.0f;
   float safe_height = text_max_h - 10.0f;
 
   al_draw_bitmap(chatbox, 0, 0, 0);
+  al_draw_scaled_bitmap(protagonist, 0, 0, al_get_bitmap_width(protagonist),
+                        al_get_bitmap_height(protagonist), 450, 225,
+                        portrait_size, portrait_size, 0);
 
   if (portrait) {
     al_draw_scaled_bitmap(portrait, 0, 0, al_get_bitmap_width(portrait),
@@ -99,7 +105,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   }
 
   if (name) {
-    al_draw_text(font_name, name_color, x + portrait_size + 2 * padding,
+    al_draw_text(font_name, name_color, x + portrait_size + 2 * padding - 15,
                  y + padding, 0, name);
   }
 
@@ -138,8 +144,9 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
         break;
     }
 
+    // print dialogue
     al_draw_text(font_std, is_highlight ? highlight_color : font_color,
-                 cursor_x, line_y + 20, 0, draw_word);
+                 cursor_x - 15, line_y + 20, 0, draw_word);
 
     // updates cursor to draw the current word. That way, the next word will
     // come in the sequence with a space betweent it.
@@ -196,16 +203,17 @@ void DrawTopicMenu(NPC *npc, int selected) {
   if (npc->num_topic <= 0)
     return;
 
-  float x = 50, y = 150;
-  float box_w = 150, box_h = npc->num_topic * 30 + 20;
+  float x = 100, y = 250;
+  // float box_w = 150, box_h = npc->num_topic * 30 + 20;
   ALLEGRO_COLOR color;
 
   // Topic Menu
-  al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
-                           al_map_rgb(0, 0, 49));
-  al_draw_rectangle(x - 10, y - 20, x + box_w, y + box_h,
-                    al_map_rgb(82, 82, 255), 2);
-  al_draw_text(font_std, al_map_rgb(255, 255, 255), x, y - 15, 0, "Ask for...");
+  // al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
+  //                          al_map_rgb(0, 0, 49));
+  // al_draw_rectangle(x - 10, y - 20, x + box_w, y + box_h,
+  //                   al_map_rgb(82, 82, 255), 2);
+  al_draw_text(font_subtitle, al_map_rgb(255, 255, 255), x, y - 15, 0,
+               "Ask About...");
 
   // Topic Scroller
   for (int i = 0; i < npc->num_topic; i++) {
@@ -252,7 +260,6 @@ void LoadDlg(NPC *npc, const char *topic) {
 void InitStdFont() {
   const char *path = "fonts/Steelflight.ttf";
   FILE *f = fopen(path, "r");
-
   if (!f) {
     perror("Error from fopen");
     fprintf(stderr, "Font doesn't found: %s\n", path);
@@ -268,6 +275,8 @@ void InitStdFont() {
 
   font_name = al_load_ttf_font("fonts/Steelflight.ttf", 14, 0);
 
+  font_subtitle = al_load_ttf_font("fonts/Steelflight.ttf", 15, 0);
+
   font_color = al_map_rgb(255, 255, 255);
   name_color = al_map_rgb(255, 255, 0);
   highlight_color = al_map_rgb(255, 215, 0);
@@ -275,14 +284,13 @@ void InitStdFont() {
 
 //==========================================================================
 //
-//    InitChatboxBitmap
+//    ExplodeFont
 //
 //==========================================================================
 
-void InitChatboxBitmap() {
-  chatbox = al_load_bitmap("portraits/chatbox_sprite.png");
-  if (!chatbox) {
-    fprintf(stderr, "Error: fail to load chatbox_sprite.png\n");
-    exit(1);
-  }
+void ExplodeFont() {
+  al_destroy_font(font_std);
+  al_destroy_font(font_name);
 }
+
+

@@ -13,6 +13,9 @@
 #define DISPW 640
 #define DISPH 400
 
+extern bool show_intro;
+extern int speaker;
+extern int selected_topic;
 extern tmx_map *map;
 
 #endif

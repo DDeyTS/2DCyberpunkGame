@@ -2,7 +2,7 @@
 //**
 //** File: textdat.c (CyberSP Project)
 //** Purpose: Dialogue storage
-//** Last Update: 28-07-2025
+//** Last Update: 30-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -14,6 +14,9 @@
 //    NpcLoader
 //
 //    Each dialogue, NPC index and topics are stored here.
+//
+//    WARNING: Everytime you'll write a dialogue, take care of the five lines
+//    limit, otherwise the text won't fit in the box.
 //
 //==========================================================================
 
@@ -92,7 +95,8 @@ void NpcLoader(NPC *npc[]) {
                     "perv’ or you'll tell something? C'mon. I won't bite you.");
   FillTopic(
       npc[3], 0, "Bettingshop",
-      "That cursed place? The |kingdom |of |cash. I hang out with a |corp’ once; "
+      "That cursed place? The |kingdom |of |cash. I hang out with a |corp’ "
+      "once; "
       "he was disgusting, honestly. Anybody who goes there hardly can keep the "
       "bank account filled. If you're wanna step on there, take care.");
 
@@ -109,5 +113,6 @@ void NpcLoader(NPC *npc[]) {
       npc[4], 0, "Nightclub",
       "There are a lot of over there. Follow your sixth sense, dude, follow it "
       "to the end of the horizon. The sun takes time to be up on the iron "
-      "color sky. Iron sky... Wow, it could gimme an awesome song name.");
+      "color sky. Iron sky... Wow, it could gimme an awesome song name. "
+      "Anyway, I can't help ya now, my friend.");
 }

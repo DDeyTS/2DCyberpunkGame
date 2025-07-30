@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main Game stuff
-//** Last Update: 28-07-2025
+//** Last Update: 29-07-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -13,6 +13,10 @@
 #include "dialoguesys.h"
 #include "textdat.h"
 #include "tile_render.h"
+
+bool show_intro = true;
+int speaker = 0;
+int selected_topic = 0;
 
 tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
@@ -26,7 +30,6 @@ ALLEGRO_TIMER *timer;
 //==========================================================================
 
 int main() {
-
   //======================
   //
   //    Initializers
@@ -40,7 +43,6 @@ int main() {
     return 1;
   }
   InitStdFont();
-  InitChatboxBitmap();
   InitBitmap();
 
   //======================
@@ -65,10 +67,7 @@ int main() {
   //======================
 
   bool dlg_open = true;
-  bool show_intro = true;
-  int speaker = 0;
   NpcLoader(npc);
-  int selected_topic = 0;
   int active_topic = -1;
   bool choosing_topic = true;
 
@@ -155,53 +154,62 @@ int main() {
         choosing_topic = true;
         show_intro = true;
       }
-    }
-
-    // Dialogue Controller: Keyboard
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-      if (dlg_open && show_intro && keys[ALLEGRO_KEY_ENTER]) {
-        show_intro = false;
-      }
-
-      if (dlg_open && choosing_topic) {
-        if (keys[ALLEGRO_KEY_DOWN]) {
-          selected_topic++;
-          if (selected_topic >= npc[speaker]->num_topic)
-            selected_topic = 0;
-        }
-        if (keys[ALLEGRO_KEY_UP]) {
-          selected_topic--;
-          if (selected_topic < 0)
-            selected_topic = npc[speaker]->num_topic - 1;
-        }
-        if (keys[ALLEGRO_KEY_ENTER]) {
-          active_topic = selected_topic;
-          choosing_topic = false;
-          show_intro = false;
-        }
-      } else if (!choosing_topic) {
-        if (keys[ALLEGRO_KEY_UP] || keys[ALLEGRO_KEY_DOWN]) {
-          choosing_topic = true;
-          active_topic = -1;
-        }
-      }
-
+      // Closes the Dialogue Box window
       if (keys[ALLEGRO_KEY_ESCAPE]) {
-        dlg_open = false; // close dialogue if ENTER is pressed again
+        dlg_open = false;
         active_topic = -1;
         show_intro = false;
       }
     }
 
+    // // Dialogue Controller: Keyboard
+    // // If Enter is pressed, skip introdution
+    // if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+    //   if (dlg_open && show_intro && keys[ALLEGRO_KEY_ENTER]) {
+    //     show_intro = false;
+    //   }
+    //   // Moves to the next topic above or below
+    //   if (dlg_open && choosing_topic) {
+    //     if (keys[ALLEGRO_KEY_DOWN]) {
+    //       selected_topic++;
+    //       if (selected_topic >= npc[speaker]->num_topic)
+    //         selected_topic = 0;
+    //     }
+    //     if (keys[ALLEGRO_KEY_UP]) {
+    //       selected_topic--;
+    //       if (selected_topic < 0)
+    //         selected_topic = npc[speaker]->num_topic - 1;
+    //     }
+    //     // Selects the chosen topic
+    //     if (keys[ALLEGRO_KEY_ENTER]) {
+    //       active_topic = selected_topic;
+    //       choosing_topic = false;
+    //       show_intro = false;
+    //     }
+    //     // Allows to choose another topic
+    //   } else if (!choosing_topic) {
+    //     if (keys[ALLEGRO_KEY_UP] || keys[ALLEGRO_KEY_DOWN]) {
+    //       choosing_topic = true;
+    //       active_topic = -1;
+    //     }
+    //   }
+    //   // Closes the Dialogue Box window
+    //   if (keys[ALLEGRO_KEY_ESCAPE]) {
+    //     dlg_open = false;
+    //     active_topic = -1;
+    //     show_intro = false;
+    //   }
+    // }
+
     // NPC Changer (for debugging)
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (keys[ALLEGRO_KEY_1]) {
         speaker++;
-        if (speaker == 4) {
+        if (speaker >= 6) {
           perror("You has exceed the NPC limit.\n");
           exit(1);
         }
-      } else if (keys[ALLEGRO_KEY_2] && speaker >= 0) {
+      } else if (keys[ALLEGRO_KEY_2]) {
         speaker = 0;
       }
     }
@@ -218,7 +226,7 @@ int main() {
         int mouse_y = ev.mouse.y;
 
         int tx = 50;       // topics' axes
-        int ty = 150;      // topics' initial axes
+        int ty = 250;      // topics' initial axes
         int spacing = 20;  // vertical space between topics
         int topic_w = 150; // area able to click on
         int topic_h = spacing;
@@ -248,21 +256,14 @@ int main() {
       }
     }
 
-    // if (map != NULL) {
-    //   printf("we fucking good\n");
-    // } else {
-    //   printf("we not fuckin good\n");
-    // }
-
     if (redraw && al_is_event_queue_empty(queue)) {
-      // al_set_target_backbuffer(disp);
       al_clear_to_color(al_map_rgb(0, 0, 0));
       RenderMap(map);
 
-      // Collisions drawings
-      al_draw_rectangle(ent.rx, ent.ry, ent.rw + ent.rx, ent.rh + ent.ry,
-                        al_map_rgb(255, 0, 0), 5.0);
-      al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
+      // // Collisions drawings
+      // al_draw_rectangle(ent.rx, ent.ry, ent.rw + ent.rx, ent.rh + ent.ry,
+      //                   al_map_rgb(255, 0, 0), 5.0);
+      // al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
 
       BanditDraw();
 
@@ -302,10 +303,7 @@ int main() {
   // Map
   tmx_map_free(map);
 
-  if (font_std) {
-    al_destroy_font(font_std);
-    font_std = NULL;
-  }
+  ExplodeFont();
 
   // Sprites
   BitmapExplode();

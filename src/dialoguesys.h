@@ -1,7 +1,6 @@
 #ifndef DIALOGUE_SYS_H
 #define DIALOGUE_SYS_H
 
-#include "bitmap.h"
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_image.h>
@@ -29,10 +28,20 @@ typedef struct {
   int num_dlg;
 } NPC;
 
+// typedef struct {
+//   const char *full_text;
+//   int word_index;
+//   bool finished;
+// } DlgState;
+
+// extern DlgState dlg_state;
 extern NPC *npc[];
 extern ALLEGRO_FONT *font_std;
+extern ALLEGRO_FONT *font_subtitle;
 extern ALLEGRO_COLOR font_color;
 extern ALLEGRO_COLOR name_color;
+extern ALLEGRO_BITMAP *chatbox;
+extern ALLEGRO_BITMAP *protagonist;
 
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text);
 NPC *CreateNpc(const char *name, int num_topic);
@@ -41,7 +50,7 @@ void LoadDlg(NPC *npc, const char *topic);
 // void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
 void DrawTopicMenu(NPC *npc, int selected);
 void InitStdFont();
-void InitChatboxBitmap();
 void FillIntro(NPC *npc, const char *text);
+void ExplodeFont();
 
 #endif

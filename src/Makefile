@@ -5,10 +5,10 @@ TARGET = cyber
 CC = gcc
 
 # Arquivos fonte
-SRC = main.c collision.c tile_render.c bitmap.c dialogue_sys.c
+SRC = main.c collision.c tile_render.c bitmap.c dialoguesys.c textdat.c
 
 # Flags de compilação
-CFLAGS = -Wall -O2 `pkg-config --cflags allegro-5 allegro_audio-5 allegro_acodec-5 allegro_font-5 allegro_ttf-5 allegro_primitives-5 allegro_image-5`
+CFLAGS = -Wall -O2 -g `pkg-config --cflags allegro-5 allegro_audio-5 allegro_acodec-5 allegro_font-5 allegro_ttf-5 allegro_primitives-5 allegro_image-5`
 
 # Bibliotecas necessárias
 LIBS = `pkg-config --libs allegro-5 allegro_audio-5 allegro_acodec-5 allegro_font-5 allegro_ttf-5 allegro_primitives-5 allegro_image-5` -ltmx -lxml2 -lz -lm
