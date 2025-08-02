@@ -2,12 +2,13 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 30-07-2025
+//** Last Update: 02-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 #include "dialoguesys.h"
+#include "textdat.h"
 
 NPC *npc[40];
 ALLEGRO_FONT *font_std;
@@ -18,9 +19,12 @@ ALLEGRO_COLOR name_color;
 ALLEGRO_BITMAP *chatbox = NULL;
 ALLEGRO_BITMAP *protagonist = NULL;
 static ALLEGRO_COLOR highlight_color;
+bool learned_topics[NUM_TOPICS] = {false};
 
 void InitStdFont();
 void InitChatboxBitmap();
+TopicID GetTopicID(const char *topic);
+void LearnTopic(const char *topic);
 void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
 void ExplodeFont();
 
@@ -129,6 +133,18 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     if (word[0] == '|') {
       is_highlight = true;
       draw_word = word + 1; // ignores '|'
+
+      // // removes characters (.,?! etc)
+      // char cleaned[64];
+      // strncpy(cleaned, draw_word, sizeof(cleaned));
+      // cleaned[sizeof(cleaned) - 1] = '\0';
+      //
+      // size_t len = strlen((cleaned));
+      // if (len > 0 && ispunct(cleaned[len - 1])) {
+      //   cleaned[len - 1] = '\0';
+      // }
+
+      LearnTopic(draw_word); // memorize via enum
     }
 
     // line break
@@ -199,7 +215,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
 //
 //==========================================================================
 
-void DrawTopicMenu(NPC *npc, int selected) {
+void TopicMenu(NPC *npc, int selected) {
   if (npc->num_topic <= 0)
     return;
 
@@ -251,6 +267,49 @@ void LoadDlg(NPC *npc, const char *topic) {
 
 //==========================================================================
 //
+//    GetTopicID
+//
+//    Memorizes any said topic by any NPC.
+//
+//==========================================================================
+
+TopicID GetTopicID(const char *topic) {
+  if (strcmp(topic, "corp") == 0)
+    return TOPIC_CORP;
+  if (strcmp(topic, "price.") == 0)
+    return TOPIC_PRICE;
+  if (strcmp(topic, "price") == 0)
+    return TOPIC_PRICE;
+  if (strcmp(topic, "kingdom") == 0)
+    return TOPIC_KINGDOM_OF_CASH;
+  if (strcmp(topic, "Ronaldo.") == 0)
+    return TOPIC_RONALDO;
+
+  return TOPIC_NONE;
+}
+
+//==========================================================================
+//
+//    LearnTopic
+//
+//    Loads the learned topic.
+//
+//==========================================================================
+
+
+void LearnTopic(const char *topic) {
+  TopicID id = GetTopicID(topic);
+  if (id != TOPIC_NONE && !learned_topics[id]) {
+    learned_topics[id] = true;
+    // debugger
+    printf("Novo tópico aprendido: %s (ID %d)\n", topic, id);
+
+    UnlockExtraTopics();
+  }
+}
+
+//==========================================================================
+//
 //    InitStdFont
 //
 //    Loads and run the game's standard fonts.
@@ -292,5 +351,3 @@ void ExplodeFont() {
   al_destroy_font(font_std);
   al_destroy_font(font_name);
 }
-
-

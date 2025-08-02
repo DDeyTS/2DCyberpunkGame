@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main Game stuff
-//** Last Update: 29-07-2025
+//** Last Update: 02-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -88,24 +88,6 @@ int main() {
 
   //======================
   //
-  //    Collision Debug
-  //
-  //======================
-
-  // Rectangle Position
-  ent.rx = 300;
-  ent.ry = 100;
-  // Edges
-  ent.rw = 200;
-  ent.rh = 50;
-
-  // Circle Position
-  ent.cx = 100;
-  ent.cy = 150;
-  ent.ray = 80;
-
-  //======================
-  //
   //    Main Loop
   //
   //======================
@@ -161,45 +143,6 @@ int main() {
         show_intro = false;
       }
     }
-
-    // // Dialogue Controller: Keyboard
-    // // If Enter is pressed, skip introdution
-    // if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-    //   if (dlg_open && show_intro && keys[ALLEGRO_KEY_ENTER]) {
-    //     show_intro = false;
-    //   }
-    //   // Moves to the next topic above or below
-    //   if (dlg_open && choosing_topic) {
-    //     if (keys[ALLEGRO_KEY_DOWN]) {
-    //       selected_topic++;
-    //       if (selected_topic >= npc[speaker]->num_topic)
-    //         selected_topic = 0;
-    //     }
-    //     if (keys[ALLEGRO_KEY_UP]) {
-    //       selected_topic--;
-    //       if (selected_topic < 0)
-    //         selected_topic = npc[speaker]->num_topic - 1;
-    //     }
-    //     // Selects the chosen topic
-    //     if (keys[ALLEGRO_KEY_ENTER]) {
-    //       active_topic = selected_topic;
-    //       choosing_topic = false;
-    //       show_intro = false;
-    //     }
-    //     // Allows to choose another topic
-    //   } else if (!choosing_topic) {
-    //     if (keys[ALLEGRO_KEY_UP] || keys[ALLEGRO_KEY_DOWN]) {
-    //       choosing_topic = true;
-    //       active_topic = -1;
-    //     }
-    //   }
-    //   // Closes the Dialogue Box window
-    //   if (keys[ALLEGRO_KEY_ESCAPE]) {
-    //     dlg_open = false;
-    //     active_topic = -1;
-    //     show_intro = false;
-    //   }
-    // }
 
     // NPC Changer (for debugging)
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
@@ -275,7 +218,7 @@ int main() {
           const char *topic = npc[speaker]->topics[selected_topic].topic;
           LoadDlg(npc[speaker], topic);
         }
-        DrawTopicMenu(npc[speaker], selected_topic);
+        TopicMenu(npc[speaker], selected_topic);
       }
 
       al_flip_display();

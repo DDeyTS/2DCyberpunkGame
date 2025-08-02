@@ -4,5 +4,6 @@
 #include "dialoguesys.h"
 
 void NpcLoader(NPC *npc[]);
+void UnlockExtraTopics();
 
 #endif

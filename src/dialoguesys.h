@@ -12,27 +12,39 @@
 
 // #define MAX_DIALOG_LEN 256
 
+typedef enum {
+  NPC_JEFFERSON,
+  NPC_CLOWNGIRL,
+  NPC_RAQUEL,
+  NPC_CINDER,
+  NPC_CHEEKS,
+} NPCID;
+
+typedef enum {
+  TOPIC_NONE = -1,
+  TOPIC_CORP,
+  TOPIC_PRICE,
+  TOPIC_KINGDOM_OF_CASH,
+  TOPIC_RONALDO,
+  NUM_TOPICS,
+} TopicID;
+
 typedef struct {
   const char *topic;
   const char *text;
   const char *intro_text;
+  // char topics_to_learn[50];
+  // TopicID topic_id;
   ALLEGRO_BITMAP *menu_box;
 } Topic;
 
 typedef struct {
   ALLEGRO_BITMAP *portrait_id;
   const char *name;
-  // char **dialog;
   int num_topic;
   Topic *topics;
   int num_dlg;
 } NPC;
-
-// typedef struct {
-//   const char *full_text;
-//   int word_index;
-//   bool finished;
-// } DlgState;
 
 // extern DlgState dlg_state;
 extern NPC *npc[];
@@ -42,13 +54,14 @@ extern ALLEGRO_COLOR font_color;
 extern ALLEGRO_COLOR name_color;
 extern ALLEGRO_BITMAP *chatbox;
 extern ALLEGRO_BITMAP *protagonist;
+extern bool learned_topics[NUM_TOPICS];
 
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text);
 NPC *CreateNpc(const char *name, int num_topic);
 void FillTopic(NPC *npc, int index, const char *topic, const char *text);
 void LoadDlg(NPC *npc, const char *topic);
 // void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
-void DrawTopicMenu(NPC *npc, int selected);
+void TopicMenu(NPC *npc, int selected);
 void InitStdFont();
 void FillIntro(NPC *npc, const char *text);
 void ExplodeFont();

@@ -2,7 +2,7 @@
 //**
 //** File: textdat.c (CyberSP Project)
 //** Purpose: Dialogue storage
-//** Last Update: 30-07-2025
+//** Last Update: 02-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -29,23 +29,24 @@ void NpcLoader(NPC *npc[]) {
     low-income families, and he collects the lesser taxes in the rainy
     metroplex.
   */
-  npc[0] = CreateNpc("Jefferson", 4);
-  npc[0]->portrait_id = al_load_bitmap("portraits/drugdealer_portrait.png");
-  FillIntro(npc[0], "What's up, bro. Are you okay?");
+  npc[NPC_JEFFERSON] = CreateNpc("Jefferson", 4);
+  npc[NPC_JEFFERSON]->portrait_id =
+      al_load_bitmap("portraits/drugdealer_portrait.png");
+  FillIntro(npc[NPC_JEFFERSON], "What's up, bro. Are you okay?");
   FillTopic(
-      npc[0], 0, "Drugs",
+      npc[NPC_JEFFERSON], 0, "Drugs",
       "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
       "course, leavin' behind the cooldown you suffers after the effect "
       "is gone. Bad stuff, however, it's like a violent punch in your "
       "pancreas.");
-  FillTopic(npc[0], 1, "Dolls",
+  FillTopic(npc[NPC_JEFFERSON], 1, "Dolls",
             "They're everywhere, bro. In every street. They know 'bout "
             "absolutely everything inside this district!");
-  FillTopic(npc[0], 2, "Firearms",
+  FillTopic(npc[NPC_JEFFERSON], 2, "Firearms",
             "If ya wanna some guns to brighten your night up, talks with "
             "|Ronaldo. He has a lot of stuff to show ya.");
   FillTopic(
-      npc[0], 3, "Bettingshop",
+      npc[NPC_JEFFERSON], 3, "Bettingshop",
       "Alright. I know one very close o' here. Just go down the slum and if ya "
       "were seeing some hot lights tearing up the sky, you're there.");
 
@@ -57,12 +58,13 @@ void NpcLoader(NPC *npc[]) {
     constantly following her. She likes to entertain opharned children weekly,
     while struggling with depression.
   */
-  npc[1] = CreateNpc("Clowngirl", 2);
-  npc[1]->portrait_id = al_load_bitmap("portraits/clowngirl_portrait.png");
-  FillIntro(npc[1], "Helloooooooo, guys!");
-  FillTopic(npc[1], 0, "Who are you?",
+  npc[NPC_CLOWNGIRL] = CreateNpc("Clowngirl", 2);
+  npc[NPC_CLOWNGIRL]->portrait_id =
+      al_load_bitmap("portraits/clowngirl_portrait.png");
+  FillIntro(npc[NPC_CLOWNGIRL], "Helloooooooo, guys!");
+  FillTopic(npc[NPC_CLOWNGIRL], 0, "Who are you?",
             "Who am I? Do ya really want to ask for that? I'm a clown, dumb!");
-  FillTopic(npc[1], 1, "Funny",
+  FillTopic(npc[NPC_CLOWNGIRL], 1, "Funny",
             "Yeah, yeah... I'm fuckin' funny. Very, very funny!");
 
   /*
@@ -73,11 +75,13 @@ void NpcLoader(NPC *npc[]) {
     specific targets while she's with them. The opportune kis of death. She has
     cybernetic razors beneath her fake nails.
   */
-  npc[2] = CreateNpc("Raquel", 1);
-  npc[2]->portrait_id = al_load_bitmap("portraits/raquel_portrait.png");
-  FillIntro(npc[2], "Nah-ah, babe. You'll not have me riding on ya. Take a "
-                    "walk and finds another doll to play with.");
-  FillTopic(npc[2], 0, "Doll",
+  npc[NPC_RAQUEL] = CreateNpc("Raquel", 1);
+  npc[NPC_RAQUEL]->portrait_id =
+      al_load_bitmap("portraits/raquel_portrait.png");
+  FillIntro(npc[NPC_RAQUEL],
+            "Nah-ah, babe. You'll not have me riding on ya. Take a "
+            "walk and finds another doll to play with.");
+  FillTopic(npc[NPC_RAQUEL], 0, "Doll",
             "They can be all you want to play with, babe. A tall man, a young "
             "woman... After that, you delight of their bodies like never did "
             "before. Of course, for a |price. Always it has a price.");
@@ -89,13 +93,15 @@ void NpcLoader(NPC *npc[]) {
     district that is dominated by privated forces. She also has a big appeal for
     men that has an iron fist to retain what is yours.
   */
-  npc[3] = CreateNpc("Cinder", 1);
-  npc[3]->portrait_id = al_load_bitmap("portraits/cinder_portrait.png");
-  FillIntro(npc[3], "Hi, confuse man. Are you here to stare me like a erect "
-                    "perv’ or you'll tell something? C'mon. I won't bite you.");
+  npc[NPC_CINDER] = CreateNpc("Cinder", 1);
+  npc[NPC_CINDER]->portrait_id =
+      al_load_bitmap("portraits/cinder_portrait.png");
+  FillIntro(npc[NPC_CINDER],
+            "Hi, confuse man. Are you here to stare me like a erect "
+            "perv’ or you'll tell something? C'mon. I won't bite you.");
   FillTopic(
-      npc[3], 0, "Bettingshop",
-      "That cursed place? The |kingdom |of |cash. I hang out with a |corp’ "
+      npc[NPC_CINDER], 0, "Bettingshop",
+      "That cursed place? The |kingdom |of |cash. I hang out with a |corp "
       "once; "
       "he was disgusting, honestly. Anybody who goes there hardly can keep the "
       "bank account filled. If you're wanna step on there, take care.");
@@ -106,13 +112,44 @@ void NpcLoader(NPC *npc[]) {
      the actual metroplex's government. Crowns of followers see him as a choisen
      one to free everyone of the megacorps' chains.
   */
-  npc[4] = CreateNpc("Cheeks", 1);
-  npc[4]->portrait_id = al_load_bitmap("portraits/bigcheeks_portrait.png");
-  FillIntro(npc[4], "What's uuuuup, my friend! How can I help ya today?");
+  npc[NPC_CHEEKS] = CreateNpc("Cheeks", 1);
+  npc[NPC_CHEEKS]->portrait_id =
+      al_load_bitmap("portraits/bigcheeks_portrait.png");
+  FillIntro(npc[NPC_CHEEKS],
+            "What's uuuuup, my friend! How can I help ya today?");
   FillTopic(
-      npc[4], 0, "Nightclub",
+      npc[NPC_CHEEKS], 0, "Nightclub",
       "There are a lot of over there. Follow your sixth sense, dude, follow it "
       "to the end of the horizon. The sun takes time to be up on the iron "
       "color sky. Iron sky... Wow, it could gimme an awesome song name. "
       "Anyway, I can't help ya now, my friend.");
+}
+
+//==========================================================================
+//
+//    UnlockExtraTopics
+//
+//    Loads new topics and their respective dialogues when they're said by any
+//    NPC.
+//
+//==========================================================================
+
+void UnlockExtraTopics() {
+  NPC *jeff = npc[NPC_JEFFERSON];
+  if (learned_topics[TOPIC_RONALDO]) {
+    jeff->topics = realloc(jeff->topics, sizeof(Topic) * (jeff->num_topic + 1));
+    FillTopic(jeff, jeff->num_topic, "Ronaldo", "Just get the hell o' here!");
+    jeff->num_topic++;
+  }
+
+  NPC *raquel = npc[NPC_RAQUEL];
+  if (learned_topics[TOPIC_PRICE]) {
+    raquel->topics =
+        realloc(raquel->topics, sizeof(Topic) * (raquel->num_topic + 1));
+    FillTopic(
+        raquel, raquel->num_topic, "Price",
+        "Gimme 500 reais and the brunette girl here will give you the best "
+        "night o' your life.");
+    raquel->num_topic++;
+  }
 }
