@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
+
 #include <tmx.h>
 
 #define DISPW 640
@@ -19,4 +20,3 @@ extern int selected_topic;
 extern tmx_map *map;
 
 #endif
-

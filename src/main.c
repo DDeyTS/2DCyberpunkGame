@@ -1,7 +1,7 @@
 //**************************************************************************
 //**
 //** File: main.c (CyberSP Project)
-//** Purpose: Main Game stuff
+//** Purpose: Main game stuff
 //** Last Update: 02-08-2025
 //** Author: DDeyTS
 //**
@@ -39,7 +39,7 @@ int main() {
   if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
       !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon() ||
       !al_install_mouse()) {
-    fprintf(stderr, "Fail to initialize Allegro\n");
+    perror("Fail to initialize Allegro\n");
     return 1;
   }
   InitStdFont();
@@ -66,7 +66,7 @@ int main() {
   //
   //======================
 
-  bool dlg_open = true;
+  bool dlg_open = false;
   NpcLoader(npc);
   int active_topic = -1;
   bool choosing_topic = true;
@@ -81,10 +81,10 @@ int main() {
   spr.px = 320;
   spr.py = 200;
   // Frames (and the initial frame when the program begins)
-  spr.frame_w = 32;
+  spr.frame_w = 0;
   spr.frame_h = 0;
   // Movement Speed
-  int sp = 3;
+  float sp = 3;
 
   //======================
   //
@@ -122,8 +122,8 @@ int main() {
       running = 0;
 
     if (ev.type == ALLEGRO_EVENT_TIMER) {
-      BanditMove(keys, &spr.px, &spr.py, sp);
-      BanditDirection(keys, &spr.frame_w, &spr.frame_h);
+      ProtagMove(keys, &spr.px, &spr.py, sp);
+      ProtagDirection(keys, &spr.frame_w, &spr.frame_h);
       al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
       redraw = true;
@@ -208,7 +208,7 @@ int main() {
       //                   al_map_rgb(255, 0, 0), 5.0);
       // al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
 
-      BanditDraw();
+      DrawProtag();
 
       if (dlg_open) {
         if (show_intro) {
