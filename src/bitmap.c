@@ -2,7 +2,7 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 02-08-2025
+//** Last Update: 03-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -10,6 +10,8 @@
 #include "bitmap.h"
 #include "collision.h"
 #include "dialoguesys.h"
+
+static int reset_frame = 0;
 
 SpriteSheetInfo spr;
 SpriteSheetInfo ent;
@@ -103,11 +105,9 @@ void DrawProtag() {
 //
 //==========================================================================
 
-void ProtagDirection(bool keys[], int *fx, int *fy) {
+void ProtagDirection(bool keys[], int *fx, int *fy, float frames) {
   spr.cols = 16;
   spr.rows = 24;
-  spr.frame_w = *fx;
-  spr.frame_h = *fy;
 
   // Diagonal Movement
   if (keys[ALLEGRO_KEY_W] && keys[ALLEGRO_KEY_D]) {
@@ -128,9 +128,13 @@ void ProtagDirection(bool keys[], int *fx, int *fy) {
   } else if (keys[ALLEGRO_KEY_A]) {
     *fx = 0, *fy = spr.rows * 3;
   } else if (keys[ALLEGRO_KEY_S]) {
-    *fx = 0, *fy = 0;
+    *fx = 16 * frames, *fy = 0;
+    reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_W]) {
     *fx = 0, *fy = spr.rows * 7;
+  } else {
+    *fx = 0;
+    *fy = reset_frame;
   }
 }
 

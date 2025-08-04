@@ -28,7 +28,7 @@ void InitBitmap(void);
 void BitmapExplode(void);
 void DrawProtag(void);
 
-void ProtagDirection(bool keys[], int *fx, int *fy);
+void ProtagDirection(bool keys[], int *fx, int *fy, float frames);
 void ProtagMove(bool keys[], float *px, float *py, float sp);
 
 #endif

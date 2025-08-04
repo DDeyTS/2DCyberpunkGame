@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
-//** Last Update: 02-08-2025
+//** Last Update: 03-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -85,6 +85,8 @@ int main() {
   spr.frame_h = 0;
   // Movement Speed
   float sp = 3;
+  // Sprite Frames
+  float frames = 0.f;
 
   //======================
   //
@@ -123,8 +125,12 @@ int main() {
 
     if (ev.type == ALLEGRO_EVENT_TIMER) {
       ProtagMove(keys, &spr.px, &spr.py, sp);
-      ProtagDirection(keys, &spr.frame_w, &spr.frame_h);
-      al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
+      frames += 0.3f;   // frames per second
+      if (frames > 5) { // reset frame queue
+        frames -= 5;
+      }
+      ProtagDirection(keys, &spr.frame_w, &spr.frame_h, (int)frames);
+      // al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
       redraw = true;
     }
