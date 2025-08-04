@@ -23,12 +23,12 @@ typedef struct {
 extern SpriteSheetInfo spr;
 extern SpriteSheetInfo ent;
 
-ALLEGRO_BITMAP *BitmapGrab(ALLEGRO_BITMAP *sheet, int x, int y, int w, int h);
+// ALLEGRO_BITMAP *BitmapGrab(ALLEGRO_BITMAP *sheet, int x, int y, int w, int h);
 void InitBitmap(void);
 void BitmapExplode(void);
 void DrawProtag(void);
 
-void ProtagDirection(bool keys[], int *fx, int *fy, float frames);
-void ProtagMove(bool keys[], float *px, float *py, float sp);
+void SpriteDirection(bool keys[], int *fx, int *fy, float frames);
+void SpriteMove(bool keys[], float *px, float *py, float sp);
 
 #endif

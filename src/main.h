@@ -18,5 +18,6 @@ extern bool show_intro;
 extern int speaker;
 extern int selected_topic;
 extern tmx_map *map;
+extern ALLEGRO_BITMAP *mouse_bmp;
 
 #endif

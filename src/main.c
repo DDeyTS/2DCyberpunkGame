@@ -22,6 +22,8 @@ tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
 ALLEGRO_EVENT_QUEUE *queue;
 ALLEGRO_TIMER *timer;
+ALLEGRO_BITMAP *mouse_bmp;
+ALLEGRO_MOUSE_CURSOR *cursor;
 
 //==========================================================================
 //
@@ -45,15 +47,18 @@ int main() {
   InitStdFont();
   InitBitmap();
 
+  disp = al_create_display(DISPW, DISPH);
+  queue = al_create_event_queue();
+  timer = al_create_timer(1.0 / 30.0);
+  cursor = al_create_mouse_cursor(mouse_bmp, 0, 0);
+  al_set_mouse_cursor(disp, cursor);
+
   //======================
   //
   //    Event Queue
   //
   //======================
 
-  disp = al_create_display(DISPW, DISPH);
-  queue = al_create_event_queue();
-  timer = al_create_timer(1.0 / 30.0);
   al_register_event_source(queue, al_get_display_event_source(disp));
   al_register_event_source(queue, al_get_timer_event_source(timer));
   al_register_event_source(queue, al_get_mouse_event_source());
@@ -124,12 +129,12 @@ int main() {
       running = 0;
 
     if (ev.type == ALLEGRO_EVENT_TIMER) {
-      ProtagMove(keys, &spr.px, &spr.py, sp);
+      SpriteMove(keys, &spr.px, &spr.py, sp);
       frames += 0.3f;   // frames per second
       if (frames > 5) { // reset frame queue
         frames -= 5;
       }
-      ProtagDirection(keys, &spr.frame_w, &spr.frame_h, (int)frames);
+      SpriteDirection(keys, &spr.frame_w, &spr.frame_h, (int)frames);
       // al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
       redraw = true;
@@ -154,7 +159,7 @@ int main() {
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
       if (keys[ALLEGRO_KEY_1]) {
         speaker++;
-        if (speaker >= 6) {
+        if (speaker >= NUM_NPCS) {
           perror("You has exceed the NPC limit.\n");
           exit(1);
         }

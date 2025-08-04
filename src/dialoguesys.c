@@ -2,7 +2,7 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 02-08-2025
+//** Last Update: 03-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -83,7 +83,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   float x = 0, y = 0;
 
   // Portrait attributes
-  float portrait_size = 128;
+  float portrait_size = 149;
 
   // Text attributes
   float padding = 30;

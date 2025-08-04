@@ -10,28 +10,12 @@
 #include "bitmap.h"
 #include "collision.h"
 #include "dialoguesys.h"
+#include "main.h"
 
 static int reset_frame = 0;
 
 SpriteSheetInfo spr;
 SpriteSheetInfo ent;
-
-//==========================================================================
-//
-//    BitmapGrab
-//
-//    Prepares the sprites on the sheet.
-//
-//==========================================================================
-
-ALLEGRO_BITMAP *BitmapGrab(ALLEGRO_BITMAP *sheet, int x, int y, int w, int h) {
-  ALLEGRO_BITMAP *sprite = al_create_sub_bitmap(sheet, x, y, w, h);
-  if (!sprite) {
-    perror("Fail to load sub-bitmap!\n");
-    exit(1);
-  }
-  return sprite;
-}
 
 //==========================================================================
 //
@@ -42,15 +26,9 @@ ALLEGRO_BITMAP *BitmapGrab(ALLEGRO_BITMAP *sheet, int x, int y, int w, int h) {
 //==========================================================================
 
 void InitBitmap() {
-  spr.sheet = al_load_bitmap("sprites/prota_spritesheet.png");
-  if (!spr.sheet) {
-    perror("Fail to load spr.bandit!\n");
-    exit(1);
-  }
-
-  spr.protag = BitmapGrab(spr.sheet, 0, 0, 16, 24);
+  spr.protag = al_load_bitmap("sprites/regis_spritesheet.png");
   if (!spr.protag) {
-    perror("BitmapGrab returned NULL\n");
+    perror("Fail to load spr.sheet!\n");
     exit(1);
   }
 
@@ -60,9 +38,16 @@ void InitBitmap() {
     exit(1);
   }
 
-  protagonist = al_load_bitmap("portraits/bandit_portrait.png");
+  protagonist = al_load_bitmap("portraits/regis_portrait.png");
   if (!protagonist) {
-    perror("Fail to load bandit_portrai.png");
+    perror("Fail to load regis_portrait.png");
+    exit(1);
+  }
+
+  mouse_bmp = al_load_bitmap("sprites/cursordebugg_sprite.png");
+  if (!mouse_bmp) {
+    perror("Fail to load cursordebugg_sprite.png");
+    exit(1);
   }
 }
 
@@ -75,10 +60,10 @@ void InitBitmap() {
 //==========================================================================
 
 void BitmapExplode() {
-  al_destroy_bitmap(spr.sheet);
   al_destroy_bitmap(spr.protag);
   al_destroy_bitmap(chatbox);
   al_destroy_bitmap(protagonist);
+  al_destroy_bitmap(mouse_bmp);
 }
 
 //==========================================================================
@@ -93,45 +78,54 @@ void BitmapExplode() {
 //==========================================================================
 
 void DrawProtag() {
-  al_draw_scaled_bitmap(spr.sheet, spr.frame_w, spr.frame_h, 16, 24, spr.px,
+  al_draw_scaled_bitmap(spr.protag, spr.frame_w, spr.frame_h, 16, 24, spr.px,
                         spr.py, 32, 48, 0);
 }
 
 //==========================================================================
 //
-//    ProtagDirection
+//    SpriteDirection
 //
 //    Moves the sprite toward the direction he's facing.
 //
 //==========================================================================
 
-void ProtagDirection(bool keys[], int *fx, int *fy, float frames) {
+void SpriteDirection(bool keys[], int *fx, int *fy, float frames) {
   spr.cols = 16;
   spr.rows = 24;
+  float fq = 16 * frames; // frame_queue
 
   // Diagonal Movement
   if (keys[ALLEGRO_KEY_W] && keys[ALLEGRO_KEY_D]) {
     // Up-right
-    *fx = 0, *fy = spr.rows * 5;
+    *fx = fq, *fy = spr.rows * 5;
+    reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_W] && keys[ALLEGRO_KEY_A]) {
     // Up-left
-    *fx = 0, *fy = spr.rows * 6;
+    *fx = fq, *fy = spr.rows * 6;
+    reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_S] && keys[ALLEGRO_KEY_D]) {
     // Down-right
-    *fx = 0, *fy = spr.rows * 2;
+    *fx = fq, *fy = spr.rows * 2;
+    reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_S] && keys[ALLEGRO_KEY_A]) {
     // Down-left
-    *fx = 0, *fy = spr.rows;
+    *fx = fq, *fy = spr.rows;
+    reset_frame = *fy;
+
     // Straight Movement
   } else if (keys[ALLEGRO_KEY_D]) {
-    *fx = 0, *fy = spr.rows * 4;
+    *fx = fq, *fy = spr.rows * 4;
+    reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_A]) {
-    *fx = 0, *fy = spr.rows * 3;
+    *fx = fq, *fy = spr.rows * 3;
+    reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_S]) {
-    *fx = 16 * frames, *fy = 0;
+    *fx = fq, *fy = 0;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_W]) {
-    *fx = 0, *fy = spr.rows * 7;
+    *fx = fq, *fy = spr.rows * 7;
+    reset_frame = *fy;
   } else {
     *fx = 0;
     *fy = reset_frame;
@@ -140,7 +134,7 @@ void ProtagDirection(bool keys[], int *fx, int *fy, float frames) {
 
 //==========================================================================
 //
-//    ProtagMove
+//    SpriteMove
 //
 //    Straight and diagonal movement logic and collision trigger.
 //
@@ -148,7 +142,7 @@ void ProtagDirection(bool keys[], int *fx, int *fy, float frames) {
 //
 //==========================================================================
 
-void ProtagMove(bool keys[], float *px, float *py, float sp) {
+void SpriteMove(bool keys[], float *px, float *py, float sp) {
   int dx = 0, dy = 0;
   spr.px = *px;
   spr.py = *py;
