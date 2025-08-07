@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
-//** Last Update: 03-08-2025
+//** Last Update: 07-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -89,7 +89,7 @@ int main() {
   spr.frame_w = 0;
   spr.frame_h = 0;
   // Movement Speed
-  float sp = 3;
+  float sp = 3.5;
   // Sprite Frames
   float frames = 0.f;
 
@@ -129,12 +129,12 @@ int main() {
       running = 0;
 
     if (ev.type == ALLEGRO_EVENT_TIMER) {
-      SpriteMove(keys, &spr.px, &spr.py, sp);
-      frames += 0.3f;   // frames per second
-      if (frames > 5) { // reset frame queue
-        frames -= 5;
+      frames += 0.3f;   // frame speed
+      if (frames > 4) { // reset frame queue
+        frames -= 4;
       }
-      SpriteDirection(keys, &spr.frame_w, &spr.frame_h, (int)frames);
+      SpriteMovement(keys, &spr.px, &spr.py, sp, &spr.frame_w, &spr.frame_h,
+                     (int)frames);
       // al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
 
       redraw = true;
@@ -168,7 +168,7 @@ int main() {
       }
     }
 
-    // Dialogue Controller: Mouse
+    // Dialogue Controller via Mouse
     if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
          ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
         dlg_open) {
@@ -214,11 +214,6 @@ int main() {
       al_clear_to_color(al_map_rgb(0, 0, 0));
       RenderMap(map);
 
-      // // Collisions drawings
-      // al_draw_rectangle(ent.rx, ent.ry, ent.rw + ent.rx, ent.rh + ent.ry,
-      //                   al_map_rgb(255, 0, 0), 5.0);
-      // al_draw_circle(ent.cx, ent.cy, ent.ray, al_map_rgb(0, 255, 0), 5);
-
       DrawProtag();
 
       if (dlg_open) {
@@ -245,7 +240,7 @@ int main() {
 
   al_destroy_display(disp);
 
-  // Dialog Box
+  // Dialogue Box
   al_destroy_bitmap(npc[speaker]->portrait_id);
   for (int i = 0; i < npc[speaker]->num_topic; i++) {
     free((char *)npc[speaker]->topics[i].topic);
@@ -254,12 +249,10 @@ int main() {
   free(npc[speaker]->topics);
   free(npc[speaker]);
 
-  // Map
   tmx_map_free(map);
 
   ExplodeFont();
 
-  // Sprites
   BitmapExplode();
 
   al_destroy_event_queue(queue);

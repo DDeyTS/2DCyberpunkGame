@@ -18,6 +18,7 @@ typedef enum {
   NPC_RAQUEL,
   NPC_CINDER,
   NPC_CHEEKS,
+  NPC_BANGER_THE_KILLER,
   NUM_NPCS,
 } NPCID;
 

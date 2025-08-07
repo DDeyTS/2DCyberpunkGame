@@ -27,8 +27,5 @@ extern SpriteSheetInfo ent;
 void InitBitmap(void);
 void BitmapExplode(void);
 void DrawProtag(void);
-
-void SpriteDirection(bool keys[], int *fx, int *fy, float frames);
-void SpriteMove(bool keys[], float *px, float *py, float sp);
-
+void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *fy, float frames);
 #endif

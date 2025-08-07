@@ -2,12 +2,13 @@
 //**
 //** File: textdat.c (CyberSP Project)
 //** Purpose: Dialogue storage
-//** Last Update: 02-08-2025
+//** Last Update: 07-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 #include "textdat.h"
+#include "dialoguesys.h"
 
 //==========================================================================
 //
@@ -123,6 +124,22 @@ void NpcLoader(NPC *npc[]) {
       "to the end of the horizon. The sun takes time to be up on the iron "
       "color sky. Iron sky... Wow, it could gimme an awesome song name. "
       "Anyway, I can't help ya now, my friend.");
+
+  /*
+    ID 5, “Banger the Killer”.
+    COMMENTARY: He is a boss and one of the great villain's goons.
+  */
+  npc[NPC_BANGER_THE_KILLER] = CreateNpc("Banger the Killer", 2);
+  npc[NPC_BANGER_THE_KILLER]->portrait_id =
+      al_load_bitmap("portraits/latavelha_portrait.png");
+  FillIntro(npc[NPC_BANGER_THE_KILLER], "Prepare to die, mother fucker!");
+  FillTopic(npc[NPC_BANGER_THE_KILLER], 0, "Victims",
+            "No one could run from me neither from my heavy, chromed arms. "
+            "Prepare to cry like a little bitch 'til your blood dryin' out!");
+  FillTopic(npc[NPC_BANGER_THE_KILLER], 1, "Boss",
+            "Where's my boss? I... I cannot remember. He had only gave me an "
+            "order: kill that gunman. For my boss I could do anything! Even "
+            "terminating a rat like ya!!! ");
 }
 
 //==========================================================================
@@ -135,21 +152,26 @@ void NpcLoader(NPC *npc[]) {
 //==========================================================================
 
 void UnlockExtraTopics() {
-  NPC *jeff = npc[NPC_JEFFERSON];
-  if (learned_topics[TOPIC_RONALDO]) {
-    jeff->topics = realloc(jeff->topics, sizeof(Topic) * (jeff->num_topic + 1));
-    FillTopic(jeff, jeff->num_topic, "Ronaldo", "Just get the hell o' here!");
-    jeff->num_topic++;
+  {
+    NPC *jeff = npc[NPC_JEFFERSON];
+    if (learned_topics[TOPIC_RONALDO]) {
+      jeff->topics =
+          realloc(jeff->topics, sizeof(Topic) * (jeff->num_topic + 1));
+      FillTopic(jeff, jeff->num_topic, "Ronaldo", "Just get the hell o' here!");
+      jeff->num_topic++;
+    }
   }
 
-  NPC *raquel = npc[NPC_RAQUEL];
-  if (learned_topics[TOPIC_PRICE]) {
-    raquel->topics =
-        realloc(raquel->topics, sizeof(Topic) * (raquel->num_topic + 1));
-    FillTopic(
-        raquel, raquel->num_topic, "Price",
-        "Gimme 500 reais and the brunette girl here will give you the best "
-        "night o' your life.");
-    raquel->num_topic++;
+  {
+    NPC *raquel = npc[NPC_RAQUEL];
+    if (learned_topics[TOPIC_PRICE]) {
+      raquel->topics =
+          realloc(raquel->topics, sizeof(Topic) * (raquel->num_topic + 1));
+      FillTopic(
+          raquel, raquel->num_topic, "Price",
+          "Gimme 500 reais and the brunette girl here will give you the best "
+          "night o' your life.");
+      raquel->num_topic++;
+    }
   }
 }

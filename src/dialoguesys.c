@@ -2,7 +2,7 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 03-08-2025
+//** Last Update: 07-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -88,9 +88,9 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
   // Text attributes
   float padding = 30;
   float text_x = x + portrait_size + 2 * padding;
-  float line_y = y + padding;
+  float line_y = y + padding / 2;
   float text_max_w = (x + box_w) - text_x - padding + 30;
-  float text_max_h = (y + box_h) - line_y - padding;
+  float text_max_h = (y + box_h) - line_y - padding + 15;
   float safe_width = text_max_w - 10.0f;
   float safe_height = text_max_h - 10.0f;
 
@@ -110,7 +110,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
 
   if (name) {
     al_draw_text(font_name, name_color, x + portrait_size + 2 * padding - 15,
-                 y + padding, 0, name);
+                 y + padding / 2, 0, name);
   }
 
   int line_height = al_get_font_line_height(font_std);
@@ -133,17 +133,6 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     if (word[0] == '|') {
       is_highlight = true;
       draw_word = word + 1; // ignores '|'
-
-      // // removes characters (.,?! etc)
-      // char cleaned[64];
-      // strncpy(cleaned, draw_word, sizeof(cleaned));
-      // cleaned[sizeof(cleaned) - 1] = '\0';
-      //
-      // size_t len = strlen((cleaned));
-      // if (len > 0 && ispunct(cleaned[len - 1])) {
-      //   cleaned[len - 1] = '\0';
-      // }
-
       LearnTopic(draw_word); // memorize via enum
     }
 
@@ -220,14 +209,8 @@ void TopicMenu(NPC *npc, int selected) {
     return;
 
   float x = 100, y = 250;
-  // float box_w = 150, box_h = npc->num_topic * 30 + 20;
   ALLEGRO_COLOR color;
 
-  // Topic Menu
-  // al_draw_filled_rectangle(x - 10, y - 20, x + box_w, y + box_h,
-  //                          al_map_rgb(0, 0, 49));
-  // al_draw_rectangle(x - 10, y - 20, x + box_w, y + box_h,
-  //                   al_map_rgb(82, 82, 255), 2);
   al_draw_text(font_subtitle, al_map_rgb(255, 255, 255), x, y - 15, 0,
                "Ask About...");
 
