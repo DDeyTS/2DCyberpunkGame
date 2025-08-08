@@ -3,27 +3,24 @@
 
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+
 #include <math.h>
 #include <stdio.h>
 
+typedef enum {
+  NONE_ENTITY = -1,
+  ENTITY_GANGMEMBER,
+  NUM_ENTITY,
+} EntitiesID;
+
 typedef struct {
-  // Character sprite attributes
   int frame_w, frame_h, rows, cols;
   float px, py;
-
-  // // Rectangle entity attributes
-  // int rw, rh, rx, ry;
-  //
-  // // Circle entity attributes
-  // float cx, cy, ray;
-
-  ALLEGRO_BITMAP *sheet, *protag;
+  ALLEGRO_BITMAP *protag;
 } SpriteSheetInfo;
 
-extern SpriteSheetInfo spr;
-extern SpriteSheetInfo ent;
+extern SpriteSheetInfo spr, ent[];
 
-// ALLEGRO_BITMAP *BitmapGrab(ALLEGRO_BITMAP *sheet, int x, int y, int w, int h);
 void InitBitmap(void);
 void BitmapExplode(void);
 void DrawProtag(void);

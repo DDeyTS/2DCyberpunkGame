@@ -14,8 +14,7 @@
 
 static int reset_frame = 0;
 
-SpriteSheetInfo spr;
-SpriteSheetInfo ent;
+SpriteSheetInfo spr, ent[NUM_ENTITY];
 
 //==========================================================================
 //
@@ -31,6 +30,11 @@ void InitBitmap() {
     perror("Fail to load spr.protag!\n");
     exit(1);
   }
+  protagonist = al_load_bitmap("portraits/regis_portrait.png");
+  if (!protagonist) {
+    perror("Fail to load protagonist's face!\n");
+    exit(1);
+  }
 
   chatbox = al_load_bitmap("sprites/largechatbox_sprite.png");
   if (!chatbox) {
@@ -38,13 +42,7 @@ void InitBitmap() {
     exit(1);
   }
 
-  protagonist = al_load_bitmap("portraits/regis_portrait.png");
-  if (!protagonist) {
-    perror("Fail to load protagonist's face!\n");
-    exit(1);
-  }
-
-  mouse_bmp = al_load_bitmap("sprites/cursordebugg_sprite.png");
+  mouse_bmp = al_load_bitmap("sprites/hand_cursor_sprite.png");
   if (!mouse_bmp) {
     perror("Fail to load mouse cursor!\n");
     exit(1);
@@ -93,42 +91,40 @@ void DrawProtag() {
 void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
                     int *fy, float frames) {
   int dx = 0, dy = 0;
-  spr.px = *px;
-  spr.py = *py;
-  spr.cols = 16;
-  spr.rows = 24;
-  float fq = (spr.cols * frames) + spr.cols; // frame queue
+  int cols = 16;
+  int rows = 24;
+  float fq = (cols * frames) + cols; // frame queue
 
   // Diagonal Movement
   if (keys[ALLEGRO_KEY_W] && keys[ALLEGRO_KEY_D]) {
     // Up-right
-    *fx = fq, *fy = spr.rows * 5;
+    *fx = fq, *fy = rows * 5;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_W] && keys[ALLEGRO_KEY_A]) {
     // Up-left
-    *fx = fq, *fy = spr.rows * 6;
+    *fx = fq, *fy = rows * 6;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_S] && keys[ALLEGRO_KEY_D]) {
     // Down-right
-    *fx = fq, *fy = spr.rows * 2;
+    *fx = fq, *fy = rows * 2;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_S] && keys[ALLEGRO_KEY_A]) {
     // Down-left
-    *fx = fq, *fy = spr.rows;
+    *fx = fq, *fy = rows;
     reset_frame = *fy;
 
     // Straight Movement
   } else if (keys[ALLEGRO_KEY_D]) {
-    *fx = fq, *fy = spr.rows * 4;
+    *fx = fq, *fy = rows * 4;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_A]) {
-    *fx = fq, *fy = spr.rows * 3;
+    *fx = fq, *fy = rows * 3;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_S]) {
     *fx = fq, *fy = 0;
     reset_frame = *fy;
   } else if (keys[ALLEGRO_KEY_W]) {
-    *fx = fq, *fy = spr.rows * 7;
+    *fx = fq, *fy = rows * 7;
     reset_frame = *fy;
   } else {
     *fx = 0;
@@ -145,16 +141,16 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
   if (keys[ALLEGRO_KEY_W])
     dy -= 1;
 
-  // Movement Values
+  // Apply speed
   float mov_x = dx * sp, mov_y = dy * sp;
 
-  // Adjust the speed
+  // Adjust speed
   if (dx != 0 && dy != 0) {
     float adj = 1 / sqrt(2); // = 0.707f
     mov_x *= adj;
     mov_y *= adj;
   }
 
-  spr.px = *px + mov_x;
-  spr.py = *py + mov_y;
+  *px += mov_x;
+  *py += mov_y;
 }

@@ -10,22 +10,17 @@
 #include "dialoguesys.h"
 #include "textdat.h"
 
-NPC *npc[40];
-ALLEGRO_FONT *font_std;
+NPC *npc[NUM_NPCS];
+ALLEGRO_FONT *font_std, *font_subtitle;
 static ALLEGRO_FONT *font_name;
-ALLEGRO_FONT *font_subtitle;
-ALLEGRO_COLOR font_color;
-ALLEGRO_COLOR name_color;
-ALLEGRO_BITMAP *chatbox = NULL;
-ALLEGRO_BITMAP *protagonist = NULL;
+ALLEGRO_COLOR font_color, name_color;
 static ALLEGRO_COLOR highlight_color;
+ALLEGRO_BITMAP *chatbox, *protagonist = NULL;
 bool learned_topics[NUM_TOPICS] = {false};
 
 void InitStdFont();
-void InitChatboxBitmap();
 TopicID GetTopicID(const char *topic);
 void LearnTopic(const char *topic);
-void ExplodeDlgBox(ALLEGRO_BITMAP *stuff);
 void ExplodeFont();
 
 //==========================================================================
@@ -240,9 +235,10 @@ void LoadDlg(NPC *npc, const char *topic) {
     if (strcmp(npc->topics[i].topic, topic) == 0) {
       DlgBox(npc->portrait_id, npc->name, npc->topics[i].text);
       if (!npc->portrait_id) {
-        fprintf(stderr, "Warning: NPC '%s' is without portrait\n", npc->name);
+        printf("Warning: NPC '%s' is without portrait\n", npc->name);
         exit(1);
       }
+
       return;
     }
   }
@@ -261,14 +257,12 @@ TopicID GetTopicID(const char *topic) {
     return TOPIC_CORP;
   if (strcmp(topic, "price.") == 0)
     return TOPIC_PRICE;
-  if (strcmp(topic, "price") == 0)
-    return TOPIC_PRICE;
   if (strcmp(topic, "kingdom") == 0)
     return TOPIC_KINGDOM_OF_CASH;
   if (strcmp(topic, "Ronaldo.") == 0)
     return TOPIC_RONALDO;
 
-  return TOPIC_NONE;
+  return NONE_TOPIC;
 }
 
 //==========================================================================
@@ -282,7 +276,7 @@ TopicID GetTopicID(const char *topic) {
 
 void LearnTopic(const char *topic) {
   TopicID id = GetTopicID(topic);
-  if (id != TOPIC_NONE && !learned_topics[id]) {
+  if (id != NONE_TOPIC && !learned_topics[id]) {
     learned_topics[id] = true;
     // debugger
     printf("Novo tópico aprendido: %s (ID %d)\n", topic, id);

@@ -135,8 +135,7 @@ int main() {
       }
       SpriteMovement(keys, &spr.px, &spr.py, sp, &spr.frame_w, &spr.frame_h,
                      (int)frames);
-      // al_set_new_bitmap_flags(ALLEGRO_MIN_LINEAR | ALLEGRO_MAG_LINEAR);
-
+  
       redraw = true;
     }
 
@@ -161,7 +160,7 @@ int main() {
         speaker++;
         if (speaker >= NUM_NPCS) {
           perror("You has exceed the NPC limit.\n");
-          exit(1);
+          return 1;
         }
       } else if (keys[ALLEGRO_KEY_2]) {
         speaker = 0;
