@@ -25,8 +25,9 @@ static int active_topic = -1;
 bool keys[ALLEGRO_KEY_MAX];
 bool mouse[MOUSE_MAX + 1];
 bool mouse_animating = false;
-double anim_timer = 0.0;
-double anim_duration = 0.3;
+float anim_timer = 0.0;     // in case of trouble, use double
+float anim_duration = 0.15; // same above
+enum CursorType current_cursor = CURSOR_NORMAL;
 
 tmx_map *map = NULL;
 ALLEGRO_DISPLAY *disp;
@@ -57,14 +58,17 @@ void KeyboardOn() {
             al_destroy_mouse_cursor(cursor);
         cursor = al_create_mouse_cursor(target_bmp, 0, 0);
         al_set_mouse_cursor(disp, cursor);
+        current_cursor = CURSOR_TARGET;
+        dlg_open = false;
     } else if (keys[ALLEGRO_KEY_H]) {
         if (cursor)
             al_destroy_mouse_cursor(cursor);
         cursor = al_create_mouse_cursor(mouse_bmp, 0, 0);
         al_set_mouse_cursor(disp, cursor);
+        current_cursor = CURSOR_NORMAL;
     }
 
-    // Dialog Trigger Button (for debugging)
+    // NOTE: Dialog Trigger Button for debugging
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_SPACE]) {
         dlg_open = true;
         choosing_topic = true;
@@ -77,7 +81,7 @@ void KeyboardOn() {
         show_intro = false;
     }
 
-    // NPC Changer (for debugging)
+    // NOTE: NPC Changer for debugging
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_1]) {
         speaker++;
         if (speaker >= NUM_NPCS) {
@@ -97,7 +101,8 @@ void KeyboardOn() {
 
 void MouseOn() {
     // Mouse boolean
-    if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
+    if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN &&
+        current_cursor != CURSOR_TARGET) {
         mouse[ev.mouse.button] = true;
     } else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
         mouse[ev.mouse.button] = false;
@@ -114,7 +119,7 @@ void MouseOn() {
         dlg_open) {
 
         if (!choosing_topic && ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
-            // it does nothing, just ignore this event
+            // NOTE: it does nothing, just ignore this event
         } else {
             int mouse_x = ev.mouse.x;
             int mouse_y = ev.mouse.y;
@@ -141,8 +146,6 @@ void MouseOn() {
                         active_topic = selected_topic;
                         choosing_topic = false;
                         show_intro = false;
-                    } else if (mouse[2]) {
-                        dlg_open = false;
                     }
 
                     break;
@@ -275,6 +278,9 @@ int main() {
 
         // Game Loop
         if (redraw && al_is_event_queue_empty(queue)) {
+            // TODO: make functions for each game aspect like either
+            // DrawProtag() or RenderMap()
+
             al_clear_to_color(al_map_rgb(0, 0, 0));
             RenderMap(map);
 

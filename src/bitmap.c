@@ -85,7 +85,7 @@ void BitmapExplode() {
 //
 //    Draws the protagonist's sprite.
 //
-//    WARNING: If the sprite is scaled, take care of remembering to adapt
+//    NOTE: if the sprite is scaled, take care of remembering to adapt
 //    the code for its new size.
 //
 //==========================================================================
@@ -100,6 +100,8 @@ void DrawProtag() {
 //    SpriteMovement
 //
 //    Moves the sprite toward the direction he's facing.
+//
+//    TODO: attempt to use it with NPCs rather than with protagonist.
 //
 //==========================================================================
 
