@@ -9,6 +9,7 @@
 
 #include "dialoguesys.h"
 #include "textdat.h"
+#include <sys/types.h>
 
 NPC *npc[NUM_NPCS];
 ALLEGRO_FONT *font_std, *font_subtitle;
@@ -114,12 +115,12 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     int line_count = 0;
 
     // Text buffer
-    char buffer[1024];
+    char buffer[WORDS_MAX];
     strncpy(buffer, text, sizeof(buffer));
     buffer[sizeof(buffer) - 1] = '\0';
 
     char *word = strtok(buffer, " "); // put spaces between each word
-    char line[1024] = "";             // stores full line
+    char line[WORDS_MAX] = "";             // stores full line
     float cursor_x = text_x;          // initial position to write
 
     while (word != NULL && line_count < max_lines) {
@@ -155,36 +156,6 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
 
         word = strtok(NULL, " ");
     }
-
-    /*
-      This is the old text printer. It's here for upload reasons
-      in case of everything blowing up!
-    */
-    // // Get the first word of the text
-    // char *word = strtok(buffer, " ");
-    // char line[1024] = "";
-    //
-    // while (word != NULL && line_count < max_lines) {
-    //   char temp[1024]; // temporary buffer
-    //   if (strlen(line) == 0) {
-    //     snprintf(temp, sizeof(temp), "%s", word);
-    //   } else {
-    //     snprintf(temp, sizeof(temp), "%s %s", line, word);
-    //   }
-    //   if (al_get_text_width(font_std, temp) > safe_width) {
-    //     // Draws current line
-    //     al_draw_text(font_std, font_color, text_x, line_y + 20, 0, line);
-    //     line_y += line_height;
-    //     line_count++;
-    //     snprintf(line, sizeof(line), "%s",
-    //              word); // Starts new line with current word
-    //   } else {
-    //     snprintf(line, sizeof(line), "%s",
-    //              temp); // Continues accumulating words
-    //   }
-    //
-    //   word = strtok(NULL, " ");
-    // }
 
     // Draws the last line
     if (line_count < max_lines && strlen(line) > 0) {
@@ -303,19 +274,21 @@ void InitStdFont() {
     }
     fclose(f);
 
-    font_std = al_load_ttf_font("fonts/Steelflight.ttf", 13, 0);
+    int f_size = 13;
+
+    font_std = al_load_ttf_font("fonts/Steelflight.ttf", f_size, 0);
     if (!font_std) {
         printf("Error: fail to load font_std!\n");
         exit(1);
     }
 
-    font_name = al_load_ttf_font("fonts/Steelflight.ttf", 14, 0);
+    font_name = al_load_ttf_font("fonts/Steelflight.ttf", f_size + 1, 0);
 
-    font_subtitle = al_load_ttf_font("fonts/Steelflight.ttf", 15, 0);
+    font_subtitle = al_load_ttf_font("fonts/Steelflight.ttf", f_size + 2, 0);
 
-    font_color = al_map_rgb(255, 255, 255);
-    name_color = al_map_rgb(255, 255, 0);
-    highlight_color = al_map_rgb(255, 215, 0);
+    font_color = al_map_rgb(255, 255, 255); // white
+    name_color = al_map_rgb(255, 255, 0); // yellow
+    highlight_color = al_map_rgb(255, 215, 0); // golden yellow
 }
 
 //==========================================================================

@@ -2,7 +2,7 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 07-08-2025
+//** Last Update: 10-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -42,9 +42,19 @@ void InitBitmap() {
         exit(1);
     }
 
-    mouse_bmp = al_load_bitmap("sprites/hand_cursor_sprite.png");
+    mouse_bmp = al_load_bitmap("sprites/handcursor_sprite.png");
     if (!mouse_bmp) {
         perror("Fail to load mouse cursor!\n");
+        exit(1);
+    }
+    mouse_click_bmp = al_load_bitmap("sprites/handcursor_click_sprite.png");
+    if (!mouse_click_bmp) {
+        perror("Fail to load mouse cursor clicking on frame!\n");
+        exit(1);
+    }
+    target_bmp = al_load_bitmap("sprites/target_sprite.png");
+    if (!target_bmp) {
+        perror("Fail to load target cursor!\n");
         exit(1);
     }
 }
@@ -61,7 +71,12 @@ void BitmapExplode() {
     al_destroy_bitmap(spr.protag);
     al_destroy_bitmap(chatbox);
     al_destroy_bitmap(protagonist);
-    al_destroy_bitmap(mouse_bmp);
+    if (mouse_bmp)
+        al_destroy_bitmap(mouse_bmp);
+    if (mouse_click_bmp)
+        al_destroy_bitmap(mouse_click_bmp);
+    if (target_bmp)
+        al_destroy_bitmap(target_bmp);
 }
 
 //==========================================================================

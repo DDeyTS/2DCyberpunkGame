@@ -10,6 +10,8 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#define WORDS_MAX 1024
+
 typedef enum {
   NPC_JEFFERSON,
   NPC_CLOWNGIRL,
