@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
-//** Last Update: 10-08-2025
+//** Last Update: 12-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -24,9 +24,10 @@ static int active_topic = -1;
 // keyboard & mouse stuff
 bool keys[ALLEGRO_KEY_MAX];
 bool mouse[MOUSE_MAX + 1];
+int mouse_x, mouse_y = 0;
 bool mouse_animating = false;
-float anim_timer = 0.0;     // in case of trouble, use double
-float anim_duration = 0.15; // same above
+static double anim_timer = 0.0;     // in case of trouble, use double
+static double anim_duration = 0.15; // same above
 enum CursorType current_cursor = CURSOR_NORMAL;
 
 tmx_map *map = NULL;
@@ -113,6 +114,12 @@ void MouseOn() {
         anim_timer = al_get_time();
     }
 
+    // Direction accordingly to cursor_aim
+    if (ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
+        mouse_x = ev.mouse.x;
+        mouse_y = ev.mouse.y;
+    }
+
     // Dialogue Controller via Mouse
     if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
          ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
@@ -121,8 +128,8 @@ void MouseOn() {
         if (!choosing_topic && ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
             // NOTE: it does nothing, just ignore this event
         } else {
-            int mouse_x = ev.mouse.x;
-            int mouse_y = ev.mouse.y;
+            mouse_x = ev.mouse.x;
+            mouse_y = ev.mouse.y;
 
             int tx = 50;       // topics' axes
             int ty = 250;      // topics' initial axes
@@ -249,14 +256,6 @@ int main() {
 
         // Main Timer
         if (ev.type == ALLEGRO_EVENT_TIMER) {
-            // character animation
-            frames += 0.3f;   // frame speed
-            if (frames > 4) { // reset frame queue
-                frames -= 4;
-            }
-            SpriteMovement(keys, &spr.px, &spr.py, sp, &spr.frame_w,
-                           &spr.frame_h, (int)frames);
-
             // mouse clicking
             if (mouse_animating) {
                 if (cursor != cursor_clicking) {
@@ -271,6 +270,21 @@ int main() {
                     cursor = cursor_normal;
                     al_set_mouse_cursor(disp, cursor);
                 }
+            }
+
+            // character animation
+            frames += 0.3f;   // frame speed
+            if (frames > 4) { // reset frame queue
+                frames -= 4;
+            }
+
+            // sprite follows cursor when aiming
+            if (current_cursor == CURSOR_TARGET) {
+                SpriteAimAtCursor(spr.px, spr.py, &spr.frame_h);
+                spr.frame_w = 0;
+            } else {
+                SpriteMovement(keys, &spr.px, &spr.py, sp, &spr.frame_w,
+                               &spr.frame_h, (int)frames);
             }
 
             redraw = true;

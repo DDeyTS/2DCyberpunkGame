@@ -25,4 +25,5 @@ void InitBitmap(void);
 void BitmapExplode(void);
 void DrawProtag(void);
 void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *fy, float frames);
+void SpriteAimAtCursor(float px, float py, int *fy);
 #endif

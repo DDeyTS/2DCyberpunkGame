@@ -15,10 +15,14 @@
 #define DISPH 400
 #define MOUSE_MAX 5
 
-// extern bool show_intro;
-// extern int speaker;
-// extern int selected_topic;
+enum CursorType {
+    CURSOR_NORMAL,
+    CURSOR_CLICK,
+    CURSOR_TARGET
+};
+
 extern bool keys[ALLEGRO_KEY_MAX], mouse[MOUSE_MAX + 1];
+extern int mouse_x, mouse_y;
 extern tmx_map *map;
 extern ALLEGRO_BITMAP *mouse_bmp, *target_bmp, *mouse_click_bmp;
 

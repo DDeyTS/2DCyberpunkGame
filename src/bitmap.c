@@ -2,7 +2,7 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 10-08-2025
+//** Last Update: 12-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -141,7 +141,7 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
         *fx = fq, *fy = 0;
         reset_frame = *fy;
     } else if (keys[ALLEGRO_KEY_W]) {
-        *fx = fq, *fy = rows * 7;
+        *fx = fq, *fy = (rows * 7) + 1;
         reset_frame = *fy;
     } else {
         *fx = 0;
@@ -170,4 +170,30 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
 
     *px += mov_x;
     *py += mov_y;
+}
+
+void SpriteAimAtCursor(float px, float py, int *fy) {
+    float t_dx = mouse_x - (spr.px + 16); // sprite center
+    float t_dy = mouse_y - (spr.py + 24); // same above
+    float t_angle = atan2(t_dy, t_dx);    // radianus (-PI to +PI)
+
+    int dir;
+    if (t_angle >= -ALLEGRO_PI / 8 && t_angle < ALLEGRO_PI / 8)
+        dir = 4; // right
+    else if (t_angle >= ALLEGRO_PI / 8 && t_angle < 3 * ALLEGRO_PI / 8)
+        dir = 2; // down-right
+    else if (t_angle >= 3 * ALLEGRO_PI / 8 && t_angle < 5 * ALLEGRO_PI / 8)
+        dir = 0; // down
+    else if (t_angle >= 5 * ALLEGRO_PI / 8 && t_angle < 7 * ALLEGRO_PI / 8)
+        dir = 1; // down-left
+    else if (t_angle >= 7 * ALLEGRO_PI / 8 || t_angle < -7 * ALLEGRO_PI / 8)
+        dir = 3; // left
+    else if (t_angle >= -7 * ALLEGRO_PI / 8 && t_angle < -5 * ALLEGRO_PI / 8)
+        dir = 6; // up-left
+    else if (t_angle >= -5 * ALLEGRO_PI / 8 && t_angle < -3 * ALLEGRO_PI / 8)
+        dir = 7; // up
+    else
+        dir = 5; // up-right
+
+    *fy = dir * 24;
 }
