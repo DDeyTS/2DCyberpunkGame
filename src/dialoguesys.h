@@ -48,7 +48,7 @@ typedef struct {
 extern NPC *npc[];
 extern ALLEGRO_FONT *font_std, *font_subtitle;
 extern ALLEGRO_COLOR font_color, name_color;
-extern ALLEGRO_BITMAP *chatbox, *protagonist;
+extern ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light;
 extern bool learned_topics[NUM_TOPICS];
 
 void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text);

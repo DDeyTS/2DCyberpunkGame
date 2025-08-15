@@ -2,7 +2,7 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 12-08-2025
+//** Last Update: 14-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -36,7 +36,7 @@ void InitBitmap() {
         exit(1);
     }
 
-    chatbox = al_load_bitmap("sprites/largechatbox_sprite.png");
+    chatbox = al_load_bitmap("sprites/chatbox_sprite.png");
     if (!chatbox) {
         perror("Fail to load chatbox!\n");
         exit(1);
@@ -57,6 +57,12 @@ void InitBitmap() {
         perror("Fail to load target cursor!\n");
         exit(1);
     }
+
+    chatbox_light = al_load_bitmap("sprites/signal_light_chatbox_spritesheet.png");
+    if (!chatbox_light) {
+        perror("Fail to load little computer light!\n");
+        exit(1);
+    }
 }
 
 //==========================================================================
@@ -70,6 +76,7 @@ void InitBitmap() {
 void BitmapExplode() {
     al_destroy_bitmap(spr.protag);
     al_destroy_bitmap(chatbox);
+    al_destroy_bitmap(chatbox_light);
     al_destroy_bitmap(protagonist);
     if (mouse_bmp)
         al_destroy_bitmap(mouse_bmp);
@@ -102,6 +109,7 @@ void DrawProtag() {
 //    Moves the sprite toward the direction he's facing.
 //
 //    TODO: attempt to use it with NPCs rather than with protagonist.
+//    TODO: aligning the movement when another key is pressed.
 //
 //==========================================================================
 
@@ -171,6 +179,13 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
     *px += mov_x;
     *py += mov_y;
 }
+
+
+//==========================================================================
+//
+//    SpriteAimAtCursor
+//
+//==========================================================================
 
 void SpriteAimAtCursor(float px, float py, int *fy) {
     float t_dx = mouse_x - (spr.px + 16); // sprite center

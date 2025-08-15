@@ -238,7 +238,7 @@ int main() {
     // defines callbacks for libTMX
     tmx_img_load_func = AllegTexLoader;
     tmx_img_free_func = AllegTexFree;
-    map = tmx_load("tiles/debugavenue.tmx");
+    map = tmx_load("tiles/buspoint.tmx");
     if (!map) {
         tmx_perror("Cannot load map");
         return 1;

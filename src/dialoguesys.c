@@ -2,21 +2,20 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 07-08-2025
+//** Last Update: 14-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 #include "dialoguesys.h"
 #include "textdat.h"
-#include <sys/types.h>
 
 NPC *npc[NUM_NPCS];
 ALLEGRO_FONT *font_std, *font_subtitle;
 static ALLEGRO_FONT *font_name;
 ALLEGRO_COLOR font_color, name_color;
 static ALLEGRO_COLOR highlight_color;
-ALLEGRO_BITMAP *chatbox, *protagonist = NULL;
+ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light = NULL;
 bool learned_topics[NUM_TOPICS] = {false};
 
 void InitStdFont();
@@ -90,7 +89,27 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     float safe_width = text_max_w - 10.0f;
     float safe_height = text_max_h - 10.0f;
 
+    static int light_frame = 0;
+    static double last_frame = 0;
+    const double frame_delay = 0.2;
+    const int total_frames = 8;
+    const int frame_w = 8, frame_h = 18;
+
+    if (al_get_time() - last_frame >= frame_delay) {
+        light_frame++;
+        if (light_frame >= total_frames) {
+            light_frame = 0;
+        }
+        last_frame = al_get_time();
+    }
+
     al_draw_bitmap(chatbox, 0, 0, 0);
+
+    if (chatbox_light) {
+        al_draw_bitmap_region(chatbox_light, 0, light_frame * frame_h, frame_w,
+                              frame_h, 632, 22, 0);
+    }
+
     al_draw_scaled_bitmap(protagonist, 0, 0, al_get_bitmap_width(protagonist),
                           al_get_bitmap_height(protagonist), 450, 225,
                           portrait_size, portrait_size, 0);
@@ -100,7 +119,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
                               al_get_bitmap_height(portrait), x + padding,
                               y + padding, portrait_size, portrait_size, 0);
     } else if (!portrait) {
-        printf("Error: fail to load portrait!\n");
+        perror("Fail to load portrait!\n");
         exit(1);
     }
 
@@ -120,7 +139,7 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     buffer[sizeof(buffer) - 1] = '\0';
 
     char *word = strtok(buffer, " "); // put spaces between each word
-    char line[WORDS_MAX] = "";             // stores full line
+    char line[WORDS_MAX] = "";        // stores full line
     float cursor_x = text_x;          // initial position to write
 
     while (word != NULL && line_count < max_lines) {
@@ -168,6 +187,8 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
 //    DrawTopicMenu
 //
 //    Window with a list of topics to ask for.
+//
+//    FIXME: controls the height of the topic list.
 //
 //==========================================================================
 
@@ -286,8 +307,8 @@ void InitStdFont() {
 
     font_subtitle = al_load_ttf_font("fonts/Steelflight.ttf", f_size + 2, 0);
 
-    font_color = al_map_rgb(255, 255, 255); // white
-    name_color = al_map_rgb(255, 255, 0); // yellow
+    font_color = al_map_rgb(255, 255, 255);    // white
+    name_color = al_map_rgb(255, 255, 0);      // yellow
     highlight_color = al_map_rgb(255, 215, 0); // golden yellow
 }
 
