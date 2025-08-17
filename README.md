@@ -8,3 +8,4 @@ The **CyberSP Project** initially was thought to be an *pseudoisometric computer
 ![Collision & tile map](cybersp_dev.png)
 ![Dialogue box](cybersp_dev_dlg.png)
 ![Updating the game](cybersp_dev2.png)
+![New stuff!](cybersp_dev3.png)
