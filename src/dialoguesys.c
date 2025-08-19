@@ -2,7 +2,7 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 14-08-2025
+//** Last Update: 18-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -10,17 +10,17 @@
 #include "dialoguesys.h"
 #include "textdat.h"
 
-NPC *npc[NUM_NPCS];
+NPC* npc[NUM_NPCS];
 ALLEGRO_FONT *font_std, *font_subtitle;
-static ALLEGRO_FONT *font_name;
+static ALLEGRO_FONT* font_name;
 ALLEGRO_COLOR font_color, name_color;
 static ALLEGRO_COLOR highlight_color;
 ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light = NULL;
 bool learned_topics[NUM_TOPICS] = {false};
 
 void InitStdFont();
-TopicID GetTopicID(const char *topic);
-void LearnTopic(const char *topic);
+TopicID GetTopicID(const char* topic);
+void LearnTopic(const char* topic);
 void ExplodeFont();
 
 //==========================================================================
@@ -31,8 +31,9 @@ void ExplodeFont();
 //
 //==========================================================================
 
-NPC *CreateNpc(const char *name, int num_topic) {
-    NPC *npc = malloc(sizeof(NPC));
+NPC* CreateNpc(const char* name, int num_topic)
+{
+    NPC* npc = malloc(sizeof(NPC));
     npc->name = name;
     npc->num_topic = num_topic;
     npc->topics = malloc(sizeof(Topic) * num_topic);
@@ -48,7 +49,9 @@ NPC *CreateNpc(const char *name, int num_topic) {
 //
 //==========================================================================
 
-void FillTopic(NPC *npc, int index, const char *topic, const char *text) {
+void FillTopic(NPC* npc, int index, char* topic, char* text)
+{
+    // NOTE: ignore the warnings, perhaps it's a glibc bug.
     npc->topics[index].topic = strdup(topic);
     npc->topics[index].text = strdup(text);
 }
@@ -61,7 +64,8 @@ void FillTopic(NPC *npc, int index, const char *topic, const char *text) {
 //
 //==========================================================================
 
-void FillIntro(NPC *npc, const char *text) {
+void FillIntro(NPC* npc, char* text)
+{
     npc->topics->intro_text = strdup(text);
 }
 
@@ -71,14 +75,15 @@ void FillIntro(NPC *npc, const char *text) {
 //
 //==========================================================================
 
-void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
+void DlgBox(ALLEGRO_BITMAP* portrait, const char* name, char* text)
+{
     // Box attributes
     float box_w = 640;
     float box_h = 200;
     float x = 0, y = 0;
 
     // Portrait attributes
-    float portrait_size = 149;
+    float portrait_size = 165;
 
     // Text attributes
     float padding = 30;
@@ -88,6 +93,19 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     float text_max_h = (y + box_h) - line_y - padding + 15;
     float safe_width = text_max_w - 10.0f;
     float safe_height = text_max_h - 10.0f;
+
+    if (portrait) {
+        al_draw_scaled_bitmap(portrait, 0, 0, al_get_bitmap_width(portrait),
+                              al_get_bitmap_height(portrait), x + padding,
+                              y + padding - 12, portrait_size, portrait_size,
+                              0);
+    } else if (!portrait) {
+        perror("Fail to load portrait!\n");
+        exit(1);
+    }
+
+    // Dialogue box sprite
+    al_draw_bitmap(chatbox, 0, 0, 0);
 
     static int light_frame = 0;
     static double last_frame = 0;
@@ -103,25 +121,15 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
         last_frame = al_get_time();
     }
 
-    al_draw_bitmap(chatbox, 0, 0, 0);
-
     if (chatbox_light) {
         al_draw_bitmap_region(chatbox_light, 0, light_frame * frame_h, frame_w,
-                              frame_h, 632, 22, 0);
+                              frame_h, 632, 21, 0);
     }
 
+    // Protagonist's face
     al_draw_scaled_bitmap(protagonist, 0, 0, al_get_bitmap_width(protagonist),
-                          al_get_bitmap_height(protagonist), 450, 225,
+                          al_get_bitmap_height(protagonist), 450, 215,
                           portrait_size, portrait_size, 0);
-
-    if (portrait) {
-        al_draw_scaled_bitmap(portrait, 0, 0, al_get_bitmap_width(portrait),
-                              al_get_bitmap_height(portrait), x + padding,
-                              y + padding, portrait_size, portrait_size, 0);
-    } else if (!portrait) {
-        perror("Fail to load portrait!\n");
-        exit(1);
-    }
 
     if (name) {
         al_draw_text(font_name, name_color,
@@ -138,13 +146,13 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
     strncpy(buffer, text, sizeof(buffer));
     buffer[sizeof(buffer) - 1] = '\0';
 
-    char *word = strtok(buffer, " "); // put spaces between each word
+    char* word = strtok(buffer, " "); // put spaces between each word
     char line[WORDS_MAX] = "";        // stores full line
     float cursor_x = text_x;          // initial position to write
 
     while (word != NULL && line_count < max_lines) {
         bool is_highlight = false;
-        const char *draw_word = word;
+        const char* draw_word = word;
 
         if (word[0] == '|') {
             is_highlight = true;
@@ -192,7 +200,8 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, const char *text) {
 //
 //==========================================================================
 
-void TopicMenu(NPC *npc, int selected) {
+void DrawTopicMenu(NPC* npc, int selected)
+{
     if (npc->num_topic <= 0)
         return;
 
@@ -219,7 +228,8 @@ void TopicMenu(NPC *npc, int selected) {
 //
 //==========================================================================
 
-void LoadDlg(NPC *npc, const char *topic) {
+void LoadDlg(NPC* npc, const char* topic)
+{
     if (npc->topics->intro_text) {
         DlgBox(npc->portrait_id, npc->name, npc->topics->intro_text);
     }
@@ -245,7 +255,8 @@ void LoadDlg(NPC *npc, const char *topic) {
 //
 //==========================================================================
 
-TopicID GetTopicID(const char *topic) {
+TopicID GetTopicID(const char* topic)
+{
     if (strcmp(topic, "corp") == 0)
         return TOPIC_CORP;
     if (strcmp(topic, "price.") == 0)
@@ -266,7 +277,8 @@ TopicID GetTopicID(const char *topic) {
 //
 //==========================================================================
 
-void LearnTopic(const char *topic) {
+void LearnTopic(const char* topic)
+{
     TopicID id = GetTopicID(topic);
     if (id != NONE_TOPIC && !learned_topics[id]) {
         learned_topics[id] = true;
@@ -285,9 +297,10 @@ void LearnTopic(const char *topic) {
 //
 //==========================================================================
 
-void InitStdFont() {
-    const char *path = "fonts/Steelflight.ttf";
-    FILE *f = fopen(path, "r");
+void InitStdFont()
+{
+    const char* path = "fonts/Steelflight.ttf";
+    FILE* f = fopen(path, "r");
     if (!f) {
         perror("Error from fopen");
         fprintf(stderr, "Font doesn't found: %s\n", path);
@@ -318,7 +331,8 @@ void InitStdFont() {
 //
 //==========================================================================
 
-void ExplodeFont() {
+void ExplodeFont()
+{
     al_destroy_font(font_std);
     al_destroy_font(font_name);
 }

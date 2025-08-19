@@ -2,7 +2,7 @@
 //**
 //** File: textdat.c (CyberSP Project)
 //** Purpose: Dialogue storage
-//** Last Update: 07-08-2025
+//** Last Update: 18-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -21,7 +21,8 @@
 //
 //==========================================================================
 
-void NpcLoader(NPC *npc[]) {
+void NpcLoader(NPC* npc[])
+{
     /*
       ID 0, “Jefferson”.
       Jefferson is a well-known drugdealer throughout São Paulo's slums.
@@ -105,10 +106,9 @@ void NpcLoader(NPC *npc[]) {
     FillTopic(
         npc[NPC_CINDER], 0, "Bettingshop",
         "That cursed place? The |kingdom |of |cash. I hang out with a |corp "
-        "once; "
-        "he was disgusting, honestly. Anybody who goes there hardly can keep "
-        "the "
-        "bank account filled. If you're wanna step on there, take care.");
+        "once; he was disgusting, honestly. Anybody who goes there hardly can "
+        "keep the bank account filled. If you're wanna step on there, take "
+        "care.");
 
     /*
        ID 4, “Cheeks”.
@@ -124,8 +124,7 @@ void NpcLoader(NPC *npc[]) {
     FillTopic(
         npc[NPC_CHEEKS], 0, "Nightclub",
         "There are a lot of over there. Follow your sixth sense, dude, follow "
-        "it "
-        "to the end of the horizon. The sun takes time to be up on the iron "
+        "it to the end of the horizon. The sun takes time to be up on the iron "
         "color sky. Iron sky... Wow, it could gimme an awesome song name. "
         "Anyway, I can't help ya now, my friend.");
 
@@ -144,6 +143,16 @@ void NpcLoader(NPC *npc[]) {
               "Where's my boss? I... I cannot remember. He had only gave me an "
               "order: kill that gunman. For my boss I could do anything! Even "
               "terminating a rat like ya!!! ");
+
+    npc[NPC_NICE_CORP] = CreateNpc("Nice Corp", 0);
+    npc[NPC_NICE_CORP]->portrait_id =
+        al_load_bitmap("portraits/nice_corpguy_face.png");
+    FillIntro(npc[NPC_NICE_CORP], "I do not have cash for you, sir. Go away.");
+
+    npc[NPC_ANAHI] = CreateNpc("Anahi", 0);
+    npc[NPC_ANAHI]->portrait_id =
+        al_load_bitmap("portraits/anahi_portrait.png");
+    FillIntro(npc[NPC_ANAHI], "Hi. How can I help you, dear soul?");
 }
 
 //==========================================================================
@@ -155,9 +164,10 @@ void NpcLoader(NPC *npc[]) {
 //
 //==========================================================================
 
-void UnlockExtraTopics() {
+void UnlockExtraTopics()
+{
     {
-        NPC *jeff = npc[NPC_JEFFERSON];
+        NPC* jeff = npc[NPC_JEFFERSON];
         if (learned_topics[TOPIC_RONALDO]) {
             jeff->topics =
                 realloc(jeff->topics, sizeof(Topic) * (jeff->num_topic + 1));
@@ -168,7 +178,7 @@ void UnlockExtraTopics() {
     }
 
     {
-        NPC *raquel = npc[NPC_RAQUEL];
+        NPC* raquel = npc[NPC_RAQUEL];
         if (learned_topics[TOPIC_PRICE]) {
             raquel->topics = realloc(raquel->topics,
                                      sizeof(Topic) * (raquel->num_topic + 1));

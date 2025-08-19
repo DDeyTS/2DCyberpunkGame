@@ -2,7 +2,7 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 14-08-2025
+//** Last Update: 19-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -24,7 +24,8 @@ SpriteSheetInfo spr, ent[NUM_ENTITY];
 //
 //==========================================================================
 
-void InitBitmap() {
+void InitBitmap()
+{
     spr.protag = al_load_bitmap("sprites/regis_spritesheet.png");
     if (!spr.protag) {
         perror("Fail to load spr.protag!\n");
@@ -42,23 +43,29 @@ void InitBitmap() {
         exit(1);
     }
 
-    mouse_bmp = al_load_bitmap("sprites/handcursor_sprite.png");
-    if (!mouse_bmp) {
+    cursors.mouse_bmp = al_load_bitmap("sprites/handcursor_sprite.png");
+    if (!cursors.mouse_bmp) {
         perror("Fail to load mouse cursor!\n");
         exit(1);
     }
-    mouse_click_bmp = al_load_bitmap("sprites/handcursor_click_sprite.png");
-    if (!mouse_click_bmp) {
+    cursors.click_bmp = al_load_bitmap("sprites/handcursor_click_sprite.png");
+    if (!cursors.click_bmp) {
         perror("Fail to load mouse cursor clicking on frame!\n");
         exit(1);
     }
-    target_bmp = al_load_bitmap("sprites/target_sprite.png");
-    if (!target_bmp) {
+    cursors.target_bmp = al_load_bitmap("sprites/target_sprite.png");
+    if (!cursors.target_bmp) {
         perror("Fail to load target cursor!\n");
         exit(1);
     }
+    cursors.eye_bmp = al_load_bitmap("sprites/eye_cursor.png");
+    if (!cursors.eye_bmp) {
+        perror("Fail to load eye cursor\n");
+        exit(1);
+    }
 
-    chatbox_light = al_load_bitmap("sprites/signal_light_chatbox_spritesheet.png");
+    chatbox_light =
+        al_load_bitmap("sprites/signal_light_chatbox_spritesheet.png");
     if (!chatbox_light) {
         perror("Fail to load little computer light!\n");
         exit(1);
@@ -73,17 +80,20 @@ void InitBitmap() {
 //
 //==========================================================================
 
-void BitmapExplode() {
+void BitmapExplode()
+{
     al_destroy_bitmap(spr.protag);
     al_destroy_bitmap(chatbox);
     al_destroy_bitmap(chatbox_light);
     al_destroy_bitmap(protagonist);
-    if (mouse_bmp)
-        al_destroy_bitmap(mouse_bmp);
-    if (mouse_click_bmp)
-        al_destroy_bitmap(mouse_click_bmp);
-    if (target_bmp)
-        al_destroy_bitmap(target_bmp);
+    if (cursors.mouse_bmp)
+        al_destroy_bitmap(cursors.mouse_bmp);
+    if (cursors.click_bmp)
+        al_destroy_bitmap(cursors.click_bmp);
+    if (cursors.target_bmp)
+        al_destroy_bitmap(cursors.target_bmp);
+    if (cursors.eye_bmp)
+        al_destroy_bitmap(cursors.eye_bmp);
 }
 
 //==========================================================================
@@ -97,7 +107,8 @@ void BitmapExplode() {
 //
 //==========================================================================
 
-void DrawProtag() {
+void DrawProtag()
+{
     al_draw_scaled_bitmap(spr.protag, spr.frame_w, spr.frame_h, 16, 24, spr.px,
                           spr.py, 32, 48, 0);
 }
@@ -113,8 +124,9 @@ void DrawProtag() {
 //
 //==========================================================================
 
-void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
-                    int *fy, float frames) {
+void SpriteMovement(bool keys[], float* px, float* py, float sp, int* fx,
+                    int* fy, float frames)
+{
     int dx = 0, dy = 0;
     int cols = 16;
     int rows = 24;
@@ -180,17 +192,17 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx,
     *py += mov_y;
 }
 
-
 //==========================================================================
 //
 //    SpriteAimAtCursor
 //
 //==========================================================================
 
-void SpriteAimAtCursor(float px, float py, int *fy) {
-    float t_dx = mouse_x - (spr.px + 16); // sprite center
-    float t_dy = mouse_y - (spr.py + 24); // same above
-    float t_angle = atan2(t_dy, t_dx);    // radianus (-PI to +PI)
+void SpriteAimAtCursor(float px, float py, int* fy)
+{
+    float t_dx    = mouse_x - (spr.px + 16); // sprite center
+    float t_dy    = mouse_y - (spr.py + 24); // same above
+    float t_angle = atan2(t_dy, t_dx);       // radianus (-PI to +PI)
 
     int dir;
     if (t_angle >= -ALLEGRO_PI / 8 && t_angle < ALLEGRO_PI / 8)

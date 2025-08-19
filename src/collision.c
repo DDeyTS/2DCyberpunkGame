@@ -34,7 +34,8 @@
 //==========================================================================
 
 bool RectSqColl(float px, float py, int pw, int ph, float wall_x1,
-                float wall_y1, int wall_x2, int wall_y2) {
+                float wall_y1, int wall_x2, int wall_y2)
+{
     return !(px + pw <= wall_x1 ||      // left wall
              px >= wall_x1 + wall_x2 || // right wall
              py + ph <= wall_y1 ||      // upper wall
@@ -50,9 +51,10 @@ bool RectSqColl(float px, float py, int pw, int ph, float wall_x1,
 //==========================================================================
 
 bool CircleColl(float cx1, float cy1, float r1, float cx2, float cy2,
-                float r2) {
-    float dx = cx1 - cx2; // player_x + circle_x
-    float dy = cy1 - cy2; // player_y + circle_y
-    float rsum = r1 + r2; // player_ray (aka frame_w) + circle_ray
+                float r2)
+{
+    float dx   = cx1 - cx2; // player_x + circle_x
+    float dy   = cy1 - cy2; // player_y + circle_y
+    float rsum = r1 + r2;   // player_ray (aka frame_w) + circle_ray
     return (dx * dx + dy * dy) < (rsum * rsum);
 }

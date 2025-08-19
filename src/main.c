@@ -2,10 +2,18 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
-//** Last Update: 12-08-2025
+//** Last Update: 19-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
+
+/*
+ * INPUT-PROCESS-OUTPUT LIST TO DO (16-08-25)
+ * 1. Colision walls on the map.
+ * 2. Little description window.
+ * 3. Eye cursor to read descriptions (like items, for instance). (Done!)
+ * 4. NPC sprite render.
+ */
 
 #include "main.h"
 #include "bitmap.h"
@@ -15,28 +23,27 @@
 #include "tile_render.h"
 
 // dialogue stuff
-static bool show_intro = true;
-static bool dlg_open = false;
+static bool show_intro     = true;
+static bool dlg_open       = false;
 static bool choosing_topic = true;
-static int speaker = 0;
-static int selected_topic = 0;
-static int active_topic = -1;
+static int speaker         = 0;
+static int selected_topic  = 0;
+static int active_topic    = -1;
 // keyboard & mouse stuff
 bool keys[ALLEGRO_KEY_MAX];
 bool mouse[MOUSE_MAX + 1];
 int mouse_x, mouse_y = 0;
-bool mouse_animating = false;
-static double anim_timer = 0.0;     // in case of trouble, use double
+bool mouse_animating        = false;
+static double anim_timer    = 0.0;  // in case of trouble, use double
 static double anim_duration = 0.15; // same above
+Mousecursors cursors;
+ALLEGRO_MOUSE_CURSOR* cursor   = NULL;
 enum CursorType current_cursor = CURSOR_NORMAL;
 
-tmx_map *map = NULL;
-ALLEGRO_DISPLAY *disp;
-ALLEGRO_EVENT_QUEUE *queue;
-ALLEGRO_TIMER *timer;
-ALLEGRO_BITMAP *mouse_bmp, *target_bmp, *mouse_click_bmp = NULL;
-ALLEGRO_MOUSE_CURSOR *cursor, *cursor_aim, *cursor_clicking,
-    *cursor_normal = NULL;
+tmx_map* map = NULL;
+ALLEGRO_DISPLAY* disp;
+ALLEGRO_EVENT_QUEUE* queue;
+ALLEGRO_TIMER* timer;
 ALLEGRO_EVENT ev;
 
 //==========================================================================
@@ -45,7 +52,8 @@ ALLEGRO_EVENT ev;
 //
 //==========================================================================
 
-void KeyboardOn() {
+void KeyboardOn()
+{
     // Keyboard boolean
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
         keys[ev.keyboard.keycode] = true;
@@ -54,32 +62,41 @@ void KeyboardOn() {
     }
 
     // Cursor Bitmap Changer
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_T]) {
-        if (cursor)
-            al_destroy_mouse_cursor(cursor);
-        cursor = al_create_mouse_cursor(target_bmp, 0, 0);
-        al_set_mouse_cursor(disp, cursor);
-        current_cursor = CURSOR_TARGET;
-        dlg_open = false;
-    } else if (keys[ALLEGRO_KEY_H]) {
-        if (cursor)
-            al_destroy_mouse_cursor(cursor);
-        cursor = al_create_mouse_cursor(mouse_bmp, 0, 0);
-        al_set_mouse_cursor(disp, cursor);
-        current_cursor = CURSOR_NORMAL;
+
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+        if (keys[ALLEGRO_KEY_T]) {
+            if (cursor)
+                al_destroy_mouse_cursor(cursor);
+            cursor = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
+            al_set_mouse_cursor(disp, cursor);
+            current_cursor = CURSOR_TARGET;
+            dlg_open       = false;
+        } else if (keys[ALLEGRO_KEY_H]) {
+            if (cursor)
+                al_destroy_mouse_cursor(cursor);
+            cursor = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
+            al_set_mouse_cursor(disp, cursor);
+            current_cursor = CURSOR_NORMAL;
+        } else if (keys[ALLEGRO_KEY_E]) {
+            if (cursor)
+                al_destroy_mouse_cursor(cursor);
+            cursor = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
+            al_set_mouse_cursor(disp, cursor);
+            current_cursor = CURSOR_EYE;
+        }
     }
 
     // NOTE: Dialog Trigger Button for debugging
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_SPACE]) {
-        dlg_open = true;
+        dlg_open       = true;
         choosing_topic = true;
-        show_intro = true;
+        show_intro     = true;
     }
     // Closes the Dialogue Box window
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_ESCAPE]) {
-        dlg_open = false;
+        dlg_open     = false;
         active_topic = -1;
-        show_intro = false;
+        show_intro   = false;
     }
 
     // NOTE: NPC Changer for debugging
@@ -100,27 +117,29 @@ void KeyboardOn() {
 //
 //==========================================================================
 
-void MouseOn() {
+void MouseOn()
+{
     // Mouse boolean
     if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN &&
-        current_cursor != CURSOR_TARGET) {
+        (current_cursor != CURSOR_TARGET && current_cursor != CURSOR_EYE)) {
         mouse[ev.mouse.button] = true;
     } else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
         mouse[ev.mouse.button] = false;
     }
 
-    if (mouse[1]) {
-        mouse_animating = true;
-        anim_timer = al_get_time();
-    }
-
-    // Direction accordingly to cursor_aim
+    // Global mouse position
     if (ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
         mouse_x = ev.mouse.x;
         mouse_y = ev.mouse.y;
     }
 
-    // Dialogue Controller via Mouse
+    // Click Animation
+    if (mouse[1] && current_cursor == CURSOR_NORMAL) {
+        mouse_animating = true;
+        anim_timer      = al_get_time();
+    }
+
+    // Dialogue Interaction
     if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
          ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
         dlg_open) {
@@ -131,8 +150,8 @@ void MouseOn() {
             mouse_x = ev.mouse.x;
             mouse_y = ev.mouse.y;
 
-            int tx = 50;       // topics' axes
-            int ty = 250;      // topics' initial axes
+            int tx      = 50;  // topics' axes
+            int ty      = 250; // topics' initial axes
             int spacing = 20;  // vertical space between topics
             int topic_w = 150; // area able to click on
             int topic_h = spacing;
@@ -146,13 +165,13 @@ void MouseOn() {
 
                     if (!choosing_topic) {
                         choosing_topic = true;
-                        active_topic = -1;
+                        active_topic   = -1;
                     }
 
                     if (mouse[1]) {
-                        active_topic = selected_topic;
+                        active_topic   = selected_topic;
                         choosing_topic = false;
-                        show_intro = false;
+                        show_intro     = false;
                     }
 
                     break;
@@ -168,7 +187,8 @@ void MouseOn() {
 //
 //==========================================================================
 
-int main() {
+int main()
+{
     //======================
     //
     //    Initializers
@@ -185,13 +205,14 @@ int main() {
     InitBitmap();
     NpcLoader(npc);
 
-    disp = al_create_display(DISPW, DISPH);
-    queue = al_create_event_queue();
-    timer = al_create_timer(1.0 / 30.0);
-    cursor_normal = al_create_mouse_cursor(mouse_bmp, 0, 0);
-    cursor_clicking = al_create_mouse_cursor(mouse_click_bmp, 0, 0);
-    cursor_aim = al_create_mouse_cursor(target_bmp, 0, 0);
-    cursor = cursor_normal;
+    disp             = al_create_display(DISPW, DISPH);
+    queue            = al_create_event_queue();
+    timer            = al_create_timer(1.0 / 30.0);
+    cursors.normal   = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
+    cursors.clicking = al_create_mouse_cursor(cursors.click_bmp, 0, 0);
+    cursors.aim      = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
+    cursors.view     = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
+    cursor           = cursors.normal;
     al_set_mouse_cursor(disp, cursor);
 
     //======================
@@ -229,7 +250,7 @@ int main() {
     //======================
 
     bool running = true;
-    bool redraw = true;
+    bool redraw  = true;
 
     // reset these arrays
     memset(keys, 0, sizeof(keys));
@@ -238,7 +259,7 @@ int main() {
     // defines callbacks for libTMX
     tmx_img_load_func = AllegTexLoader;
     tmx_img_free_func = AllegTexFree;
-    map = tmx_load("tiles/buspoint.tmx");
+    map               = tmx_load("tiles/buspoint.tmx");
     if (!map) {
         tmx_perror("Cannot load map");
         return 1;
@@ -258,16 +279,16 @@ int main() {
         if (ev.type == ALLEGRO_EVENT_TIMER) {
             // mouse clicking
             if (mouse_animating) {
-                if (cursor != cursor_clicking) {
-                    cursor = cursor_clicking;
+                if (cursor != cursors.clicking) {
+                    cursor = cursors.clicking;
                     al_set_mouse_cursor(disp, cursor);
                 }
                 if ((al_get_time() - anim_timer) >= anim_duration) {
                     mouse_animating = false;
                 }
             } else {
-                if (cursor != cursor_normal) {
-                    cursor = cursor_normal;
+                if (cursor != cursors.normal) {
+                    cursor = cursors.normal;
                     al_set_mouse_cursor(disp, cursor);
                 }
             }
@@ -305,11 +326,11 @@ int main() {
                     DlgBox(npc[speaker]->portrait_id, npc[speaker]->name,
                            npc[speaker]->topics->intro_text);
                 } else if (active_topic >= 0) {
-                    const char *topic =
+                    const char* topic =
                         npc[speaker]->topics[selected_topic].topic;
                     LoadDlg(npc[speaker], topic);
                 }
-                TopicMenu(npc[speaker], selected_topic);
+                DrawTopicMenu(npc[speaker], selected_topic);
             }
 
             al_flip_display();
@@ -323,13 +344,13 @@ int main() {
     //
     //======================
 
-    al_destroy_display(disp);
-
     // Dialogue Box
     al_destroy_bitmap(npc[speaker]->portrait_id);
     for (int i = 0; i < npc[speaker]->num_topic; i++) {
-        free((char *)npc[speaker]->topics[i].topic);
-        free((char *)npc[speaker]->topics[i].text);
+        free(npc[speaker]->topics[i].topic);
+        free(npc[speaker]->topics[i].text);
+        // NOTE: in case of error, put (char *) casting before both
+        // npc[speaker]... etc.
     }
     free(npc[speaker]->topics);
     free(npc[speaker]);
@@ -339,9 +360,19 @@ int main() {
     ExplodeFont();
 
     BitmapExplode();
-
-    al_destroy_mouse_cursor(cursor);
+    if (cursor)
+        al_destroy_mouse_cursor(cursor);
+    // if (cursors.normal)
+    //     al_destroy_mouse_cursor(cursors.normal);
+    // if (cursors.clicking)
+    //     al_destroy_mouse_cursor(cursors.clicking);
+    // if (cursors.aim)
+    //     al_destroy_mouse_cursor(cursors.aim);
+    // if (cursors.view)
+    //     al_destroy_mouse_cursor(cursors.view);
     al_destroy_event_queue(queue);
     al_destroy_timer(timer);
+    al_destroy_display(disp);
+
     return 0;
 }
