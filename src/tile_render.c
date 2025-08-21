@@ -23,17 +23,16 @@
 //
 //==========================================================================
 
-void* AllegTexLoader(const char* path)
+void *AllegTexLoader(const char *path)
 {
     // printf("[AllegTexLoader] Tentando carregar imagem: %s\n", path);
-    ALLEGRO_PATH* alpath = al_create_path(path);
-    if (!alpath)
-        return NULL;
+    ALLEGRO_PATH *alpath = al_create_path(path);
+    if (!alpath) return NULL;
     al_set_new_bitmap_format(ALLEGRO_PIXEL_FORMAT_ANY_WITH_ALPHA);
-    ALLEGRO_BITMAP* bmp =
+    ALLEGRO_BITMAP *bmp =
         al_load_bitmap(al_path_cstr(alpath, ALLEGRO_NATIVE_PATH_SEP));
     al_destroy_path(alpath);
-    return (void*)bmp;
+    return (void *)bmp;
 }
 
 // void *AllegTexLoader(const char *path) {
@@ -52,9 +51,9 @@ void* AllegTexLoader(const char* path)
 //    Callback to free texture.
 //==========================================================================
 
-void AllegTexFree(void* ptr)
+void AllegTexFree(void *ptr)
 {
-    al_destroy_bitmap((ALLEGRO_BITMAP*)ptr);
+    al_destroy_bitmap((ALLEGRO_BITMAP *)ptr);
 }
 
 //==========================================================================
@@ -78,11 +77,10 @@ ALLEGRO_COLOR IntToAllegColor(int color)
 //    Draws a full-screen image layer.
 //==========================================================================
 
-void DrawImgLayer(tmx_image* image)
+void DrawImgLayer(tmx_image *image)
 {
-    ALLEGRO_BITMAP* bmp = (ALLEGRO_BITMAP*)image->resource_image;
-    if (bmp)
-        al_draw_bitmap(bmp, 0, 0, 0);
+    ALLEGRO_BITMAP *bmp = (ALLEGRO_BITMAP *)image->resource_image;
+    if (bmp) al_draw_bitmap(bmp, 0, 0, 0);
 }
 
 //==========================================================================
@@ -93,12 +91,12 @@ void DrawImgLayer(tmx_image* image)
 //
 //==========================================================================
 
-void DrawTile(void* image, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
+void DrawTile(void *image, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
               unsigned dx, unsigned dy, float opacity, unsigned flags)
 {
     ALLEGRO_COLOR tint = al_map_rgba_f(opacity, opacity, opacity, opacity);
-    al_draw_tinted_bitmap_region((ALLEGRO_BITMAP*)image, tint, sx, sy, sw, sh,
-                                 dx, dy, flags);
+    al_draw_tinted_bitmap_region((ALLEGRO_BITMAP *)image, tint, sx, sy, sw, sh, dx,
+                                 dy, flags);
 }
 
 //==========================================================================
@@ -107,7 +105,7 @@ void DrawTile(void* image, unsigned sx, unsigned sy, unsigned sw, unsigned sh,
 //
 //==========================================================================
 
-void DrawTileLayer(tmx_map* map, tmx_layer* layer)
+void DrawTileLayer(tmx_map *map, tmx_layer *layer)
 {
     unsigned mapw = map->width, maph = map->height;
     for (unsigned i = 0; i < maph; i++) {
@@ -116,9 +114,9 @@ void DrawTileLayer(tmx_map* map, tmx_layer* layer)
             unsigned gid_raw    = layer->content.gids[index];
             unsigned gid        = gid_raw & TMX_FLIP_BITS_REMOVAL;
             if (map->tiles[gid]) {
-                tmx_tileset* ts = map->tiles[gid]->tileset;
-                tmx_image* im   = map->tiles[gid]->image;
-                void* img       = im ? im->resource_image : ts->image->resource_image;
+                tmx_tileset *ts = map->tiles[gid]->tileset;
+                tmx_image *im   = map->tiles[gid]->image;
+                void *img   = im ? im->resource_image : ts->image->resource_image;
                 unsigned sx = map->tiles[gid]->ul_x, sy = map->tiles[gid]->ul_y;
                 unsigned sw = ts->tile_width, sh = ts->tile_height;
                 float op       = layer->opacity;
@@ -137,12 +135,12 @@ void DrawTileLayer(tmx_map* map, tmx_layer* layer)
 //
 //==========================================================================
 
-void DrawPolyline(double** points, double x, double y, int count,
+void DrawPolyline(double **points, double x, double y, int count,
                   ALLEGRO_COLOR color)
 {
     for (int i = 1; i < count; i++) {
-        al_draw_line(x + points[i - 1][0], y + points[i - 1][1],
-                     x + points[i][0], y + points[i][1], color, LINE_THICKNESS);
+        al_draw_line(x + points[i - 1][0], y + points[i - 1][1], x + points[i][0],
+                     y + points[i][1], color, LINE_THICKNESS);
     }
 }
 
@@ -152,14 +150,12 @@ void DrawPolyline(double** points, double x, double y, int count,
 //
 //==========================================================================
 
-void DrawPolygon(double** points, double x, double y, int count,
-                 ALLEGRO_COLOR color)
+void DrawPolygon(double **points, double x, double y, int count, ALLEGRO_COLOR color)
 {
     DrawPolyline(points, x, y, count, color);
     if (count > 2)
-        al_draw_line(x + points[0][0], y + points[0][1],
-                     x + points[count - 1][0], y + points[count - 1][1], color,
-                     LINE_THICKNESS);
+        al_draw_line(x + points[0][0], y + points[0][1], x + points[count - 1][0],
+                     y + points[count - 1][1], color, LINE_THICKNESS);
 }
 
 //==========================================================================
@@ -168,10 +164,10 @@ void DrawPolygon(double** points, double x, double y, int count,
 //
 //==========================================================================
 
-void DrawObjects(tmx_object_group* objgr)
+void DrawObjects(tmx_object_group *objgr)
 {
     ALLEGRO_COLOR color = IntToAllegColor(objgr->color);
-    tmx_object* obj     = objgr->head;
+    tmx_object *obj     = objgr->head;
     while (obj) {
         if (obj->visible) {
             switch (obj->obj_type) {
@@ -206,7 +202,7 @@ void DrawObjects(tmx_object_group* objgr)
 //
 //==========================================================================
 
-void DrawAllLayers(tmx_map* map, tmx_layer* layers)
+void DrawAllLayers(tmx_map *map, tmx_layer *layers)
 {
     while (layers) {
         if (layers->visible) {
@@ -232,7 +228,7 @@ void DrawAllLayers(tmx_map* map, tmx_layer* layers)
 //
 //==========================================================================
 
-void RenderMap(tmx_map* m)
+void RenderMap(tmx_map *m)
 {
     al_clear_to_color(IntToAllegColor(m->backgroundcolor));
     DrawAllLayers(m, m->ly_head);

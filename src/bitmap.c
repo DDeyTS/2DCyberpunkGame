@@ -12,9 +12,11 @@
 #include "dialoguesys.h"
 #include "main.h"
 
-static int reset_frame = 0;
-
+// EXTERNAL DATA DECLARATIONS ///////////
 SpriteSheetInfo spr, ent[NUM_ENTITY];
+
+// PRIVATE DATA DEFINITIONS ///////////
+static int reset_frame = 0;
 
 //==========================================================================
 //
@@ -31,7 +33,7 @@ void InitBitmap()
         perror("Fail to load spr.protag!\n");
         exit(1);
     }
-    protagonist = al_load_bitmap("portraits/regis_portrait.png");
+    protagonist = al_load_bitmap("portraits/regis_face.png");
     if (!protagonist) {
         perror("Fail to load protagonist's face!\n");
         exit(1);
@@ -64,8 +66,7 @@ void InitBitmap()
         exit(1);
     }
 
-    chatbox_light =
-        al_load_bitmap("sprites/signal_light_chatbox_spritesheet.png");
+    chatbox_light = al_load_bitmap("sprites/signal_light_chatbox_spritesheet.png");
     if (!chatbox_light) {
         perror("Fail to load little computer light!\n");
         exit(1);
@@ -86,14 +87,10 @@ void BitmapExplode()
     al_destroy_bitmap(chatbox);
     al_destroy_bitmap(chatbox_light);
     al_destroy_bitmap(protagonist);
-    if (cursors.mouse_bmp)
-        al_destroy_bitmap(cursors.mouse_bmp);
-    if (cursors.click_bmp)
-        al_destroy_bitmap(cursors.click_bmp);
-    if (cursors.target_bmp)
-        al_destroy_bitmap(cursors.target_bmp);
-    if (cursors.eye_bmp)
-        al_destroy_bitmap(cursors.eye_bmp);
+    if (cursors.mouse_bmp) al_destroy_bitmap(cursors.mouse_bmp);
+    if (cursors.click_bmp) al_destroy_bitmap(cursors.click_bmp);
+    if (cursors.target_bmp) al_destroy_bitmap(cursors.target_bmp);
+    if (cursors.eye_bmp) al_destroy_bitmap(cursors.eye_bmp);
 }
 
 //==========================================================================
@@ -124,8 +121,8 @@ void DrawProtag()
 //
 //==========================================================================
 
-void SpriteMovement(bool keys[], float* px, float* py, float sp, int* fx,
-                    int* fy, float frames)
+void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *fy,
+                    float frames)
 {
     int dx = 0, dy = 0;
     int cols = 16;
@@ -169,14 +166,10 @@ void SpriteMovement(bool keys[], float* px, float* py, float sp, int* fx,
     }
 
     // Pressed directions
-    if (keys[ALLEGRO_KEY_D])
-        dx += 1;
-    if (keys[ALLEGRO_KEY_A])
-        dx -= 1;
-    if (keys[ALLEGRO_KEY_S])
-        dy += 1;
-    if (keys[ALLEGRO_KEY_W])
-        dy -= 1;
+    if (keys[ALLEGRO_KEY_D]) dx += 1;
+    if (keys[ALLEGRO_KEY_A]) dx -= 1;
+    if (keys[ALLEGRO_KEY_S]) dy += 1;
+    if (keys[ALLEGRO_KEY_W]) dy -= 1;
 
     // Apply speed
     float mov_x = dx * sp, mov_y = dy * sp;
@@ -198,7 +191,7 @@ void SpriteMovement(bool keys[], float* px, float* py, float sp, int* fx,
 //
 //==========================================================================
 
-void SpriteAimAtCursor(float px, float py, int* fy)
+void SpriteAimAtCursor(float px, float py, int *fy)
 {
     float t_dx    = mouse_x - (spr.px + 16); // sprite center
     float t_dy    = mouse_y - (spr.py + 24); // same above

@@ -2,7 +2,7 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
-//** Last Update: 19-08-2025
+//** Last Update: 21-08-2025
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -10,7 +10,7 @@
 /*
  * INPUT-PROCESS-OUTPUT LIST TO DO (16-08-25)
  * 1. Colision walls on the map.
- * 2. Little description window.
+ * 2. Little description window. (Done!)
  * 3. Eye cursor to read descriptions (like items, for instance). (Done!)
  * 4. NPC sprite render.
  */
@@ -22,164 +22,35 @@
 #include "textdat.h"
 #include "tile_render.h"
 
-// dialogue stuff
-static bool show_intro     = true;
-static bool dlg_open       = false;
-static bool choosing_topic = true;
-static int speaker         = 0;
-static int selected_topic  = 0;
-static int active_topic    = -1;
-// keyboard & mouse stuff
-bool keys[ALLEGRO_KEY_MAX];
-bool mouse[MOUSE_MAX + 1];
+// PRIVATE FUNCTION PROTOTYPES ///////////
+static void KeyboardOn();
+static void MouseOn();
+
+// EXTERNAL DATA DECLARATIONS ///////////
+Mousecursors cursors;
+tmx_map *map = NULL;
+ALLEGRO_EVENT ev;
+bool keys[ALLEGRO_KEY_MAX], mouse[MOUSE_MAX + 1];
 int mouse_x, mouse_y = 0;
-bool mouse_animating        = false;
+
+// PUBLIC DATA DEFINITIONS ///////////
+ALLEGRO_DISPLAY *disp;
+ALLEGRO_EVENT_QUEUE *queue;
+ALLEGRO_TIMER *timer;
+ALLEGRO_EVENT ev;
+ALLEGRO_MOUSE_CURSOR *cursor   = NULL;
+enum CursorType current_cursor = CURSOR_NORMAL;
+bool mouse_animating           = false;
+
+// PRIVATE DATA DEFINITIONS ///////////
 static double anim_timer    = 0.0;  // in case of trouble, use double
 static double anim_duration = 0.15; // same above
-Mousecursors cursors;
-ALLEGRO_MOUSE_CURSOR* cursor   = NULL;
-enum CursorType current_cursor = CURSOR_NORMAL;
-
-tmx_map* map = NULL;
-ALLEGRO_DISPLAY* disp;
-ALLEGRO_EVENT_QUEUE* queue;
-ALLEGRO_TIMER* timer;
-ALLEGRO_EVENT ev;
-
-//==========================================================================
-//
-//    KeyboardOn
-//
-//==========================================================================
-
-void KeyboardOn()
-{
-    // Keyboard boolean
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-        keys[ev.keyboard.keycode] = true;
-    } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
-        keys[ev.keyboard.keycode] = false;
-    }
-
-    // Cursor Bitmap Changer
-
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-        if (keys[ALLEGRO_KEY_T]) {
-            if (cursor)
-                al_destroy_mouse_cursor(cursor);
-            cursor = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
-            al_set_mouse_cursor(disp, cursor);
-            current_cursor = CURSOR_TARGET;
-            dlg_open       = false;
-        } else if (keys[ALLEGRO_KEY_H]) {
-            if (cursor)
-                al_destroy_mouse_cursor(cursor);
-            cursor = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
-            al_set_mouse_cursor(disp, cursor);
-            current_cursor = CURSOR_NORMAL;
-        } else if (keys[ALLEGRO_KEY_E]) {
-            if (cursor)
-                al_destroy_mouse_cursor(cursor);
-            cursor = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
-            al_set_mouse_cursor(disp, cursor);
-            current_cursor = CURSOR_EYE;
-        }
-    }
-
-    // NOTE: Dialog Trigger Button for debugging
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_SPACE]) {
-        dlg_open       = true;
-        choosing_topic = true;
-        show_intro     = true;
-    }
-    // Closes the Dialogue Box window
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_ESCAPE]) {
-        dlg_open     = false;
-        active_topic = -1;
-        show_intro   = false;
-    }
-
-    // NOTE: NPC Changer for debugging
-    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_1]) {
-        speaker++;
-        if (speaker >= NUM_NPCS) {
-            perror("You has exceed the NPC limit.\n");
-            exit(1);
-        }
-    } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_2]) {
-        speaker = 0;
-    }
-}
-
-//==========================================================================
-//
-//    MouseOn
-//
-//==========================================================================
-
-void MouseOn()
-{
-    // Mouse boolean
-    if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN &&
-        (current_cursor != CURSOR_TARGET && current_cursor != CURSOR_EYE)) {
-        mouse[ev.mouse.button] = true;
-    } else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
-        mouse[ev.mouse.button] = false;
-    }
-
-    // Global mouse position
-    if (ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
-        mouse_x = ev.mouse.x;
-        mouse_y = ev.mouse.y;
-    }
-
-    // Click Animation
-    if (mouse[1] && current_cursor == CURSOR_NORMAL) {
-        mouse_animating = true;
-        anim_timer      = al_get_time();
-    }
-
-    // Dialogue Interaction
-    if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
-         ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
-        dlg_open) {
-
-        if (!choosing_topic && ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
-            // NOTE: it does nothing, just ignore this event
-        } else {
-            mouse_x = ev.mouse.x;
-            mouse_y = ev.mouse.y;
-
-            int tx      = 50;  // topics' axes
-            int ty      = 250; // topics' initial axes
-            int spacing = 20;  // vertical space between topics
-            int topic_w = 150; // area able to click on
-            int topic_h = spacing;
-
-            for (int i = 0; i < npc[speaker]->num_topic; i++) {
-                int top_y = ty + i * spacing;
-
-                if (mouse_x >= tx && mouse_x <= tx + topic_w &&
-                    mouse_y >= top_y && mouse_y <= top_y + topic_h) {
-                    selected_topic = i;
-
-                    if (!choosing_topic) {
-                        choosing_topic = true;
-                        active_topic   = -1;
-                    }
-
-                    if (mouse[1]) {
-                        active_topic   = selected_topic;
-                        choosing_topic = false;
-                        show_intro     = false;
-                    }
-
-                    break;
-                }
-            }
-        }
-    }
-}
+static bool show_intro      = true;
+static bool dlg_open        = false;
+static bool choosing_topic  = true;
+static int speaker          = 0;
+static int selected_topic   = 0;
+static int active_topic     = -1;
 
 //==========================================================================
 //
@@ -189,15 +60,11 @@ void MouseOn()
 
 int main()
 {
-    //======================
-    //
-    //    Initializers
-    //
-    //======================
+    // INITIALIZERS ///////////
 
     if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
-        !al_install_keyboard() || !al_init_font_addon() ||
-        !al_init_ttf_addon() || !al_install_mouse()) {
+        !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon() ||
+        !al_install_mouse()) {
         perror("Fail to initialize Allegro\n");
         return 1;
     }
@@ -215,11 +82,7 @@ int main()
     cursor           = cursors.normal;
     al_set_mouse_cursor(disp, cursor);
 
-    //======================
-    //
-    //    Event Queue
-    //
-    //======================
+    // EVENT QUEUE //////////
 
     al_register_event_source(queue, al_get_display_event_source(disp));
     al_register_event_source(queue, al_get_timer_event_source(timer));
@@ -227,11 +90,7 @@ int main()
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_start_timer(timer);
 
-    //======================
-    //
-    //    Player Movement
-    //
-    //======================
+    // PLAYER MOVEMENT ///////////
 
     spr.px = 320;
     spr.py = 200;
@@ -243,11 +102,7 @@ int main()
     // Sprite Frames
     float frames = 0.f;
 
-    //======================
-    //
-    //    Main Loop
-    //
-    //======================
+    // GAME LOOP ///////////
 
     bool running = true;
     bool redraw  = true;
@@ -272,8 +127,7 @@ int main()
         MouseOn();
 
         // close the game
-        if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE)
-            running = false;
+        if (ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) running = false;
 
         // Main Timer
         if (ev.type == ALLEGRO_EVENT_TIMER) {
@@ -311,7 +165,6 @@ int main()
             redraw = true;
         }
 
-        // Game Loop
         if (redraw && al_is_event_queue_empty(queue)) {
             // TODO: make functions for each game aspect like either
             // DrawProtag() or RenderMap()
@@ -320,14 +173,16 @@ int main()
             RenderMap(map);
 
             DrawProtag();
+            DescBox("Hello, folks. You are seeing a little description box working "
+                    "perfectly (I hope so). The player can read about any detail, "
+                    "like a poster glued on the wall.");
 
             if (dlg_open) {
                 if (show_intro) {
                     DlgBox(npc[speaker]->portrait_id, npc[speaker]->name,
                            npc[speaker]->topics->intro_text);
                 } else if (active_topic >= 0) {
-                    const char* topic =
-                        npc[speaker]->topics[selected_topic].topic;
+                    const char *topic = npc[speaker]->topics[selected_topic].topic;
                     LoadDlg(npc[speaker], topic);
                 }
                 DrawTopicMenu(npc[speaker], selected_topic);
@@ -338,41 +193,160 @@ int main()
         }
     }
 
-    //======================
-    //
-    //    Game Crusher
-    //
-    //======================
+    // GAME CRUSHER ///////////
 
-    // Dialogue Box
+    // Dialogue Sys
     al_destroy_bitmap(npc[speaker]->portrait_id);
     for (int i = 0; i < npc[speaker]->num_topic; i++) {
         free(npc[speaker]->topics[i].topic);
         free(npc[speaker]->topics[i].text);
         // NOTE: in case of error, put (char *) casting before both
-        // npc[speaker]... etc.
+        // free(npc[speaker]... etc.
     }
     free(npc[speaker]->topics);
     free(npc[speaker]);
-
     tmx_map_free(map);
-
     ExplodeFont();
-
     BitmapExplode();
-    if (cursor)
-        al_destroy_mouse_cursor(cursor);
-    // if (cursors.normal)
-    //     al_destroy_mouse_cursor(cursors.normal);
-    // if (cursors.clicking)
-    //     al_destroy_mouse_cursor(cursors.clicking);
-    // if (cursors.aim)
-    //     al_destroy_mouse_cursor(cursors.aim);
-    // if (cursors.view)
-    //     al_destroy_mouse_cursor(cursors.view);
+    if (cursor) al_destroy_mouse_cursor(cursor);
     al_destroy_event_queue(queue);
     al_destroy_timer(timer);
     al_destroy_display(disp);
 
     return 0;
+}
+
+//==========================================================================
+//
+//    KeyboardOn
+//
+//==========================================================================
+
+void KeyboardOn()
+{
+    // Keyboard Boolean
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+        keys[ev.keyboard.keycode] = true;
+    } else if (ev.type == ALLEGRO_EVENT_KEY_UP) {
+        keys[ev.keyboard.keycode] = false;
+    }
+
+    // Cursor Bitmap Changer
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
+        if (keys[ALLEGRO_KEY_T]) {
+            if (cursor) al_destroy_mouse_cursor(cursor);
+            cursor = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
+            al_set_mouse_cursor(disp, cursor);
+            current_cursor = CURSOR_TARGET;
+            dlg_open       = false;
+        } else if (keys[ALLEGRO_KEY_H]) {
+            if (cursor) al_destroy_mouse_cursor(cursor);
+            cursor = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
+            al_set_mouse_cursor(disp, cursor);
+            current_cursor = CURSOR_NORMAL;
+        } else if (keys[ALLEGRO_KEY_E]) {
+            if (cursor) al_destroy_mouse_cursor(cursor);
+            cursor = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
+            al_set_mouse_cursor(disp, cursor);
+            current_cursor = CURSOR_EYE;
+        }
+    }
+
+    // Dialogue Trigger Button
+    // NOTE: for debugging
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_SPACE]) {
+        dlg_open       = true;
+        choosing_topic = true;
+        show_intro     = true;
+    }
+
+    // Dialogue Box Exit
+    // TODO: bitmap button to do it
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_ESCAPE]) {
+        dlg_open     = false;
+        active_topic = -1;
+        show_intro   = false;
+    }
+
+    // NPC Changer
+    // NOTE: for debugging
+    if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_1]) {
+        speaker++;
+        if (speaker >= NUM_NPCS) {
+            perror("You has exceed the NPC limit.\n");
+            exit(1);
+        }
+    } else if (ev.type == ALLEGRO_EVENT_KEY_DOWN && keys[ALLEGRO_KEY_2]) {
+        speaker = 0;
+    }
+}
+
+//==========================================================================
+//
+//    MouseOn
+//
+//==========================================================================
+
+void MouseOn()
+{
+    // Global mouse position
+    if (ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
+        mouse_x = ev.mouse.x;
+        mouse_y = ev.mouse.y;
+    }
+
+    // Mouse Boolean
+    if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN &&
+        (current_cursor != CURSOR_TARGET && current_cursor != CURSOR_EYE)) {
+        mouse[ev.mouse.button] = true;
+    } else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
+        mouse[ev.mouse.button] = false;
+    }
+
+    // Click Animation
+    if (mouse[1] && current_cursor == CURSOR_NORMAL) {
+        mouse_animating = true;
+        anim_timer      = al_get_time();
+    }
+
+    // Dialogue Interaction
+    if ((ev.type == ALLEGRO_EVENT_MOUSE_AXES ||
+         ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) &&
+        dlg_open) {
+
+        if (!choosing_topic && ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
+            // NOTE: it does nothing, just ignore this event
+        } else {
+            mouse_x = ev.mouse.x;
+            mouse_y = ev.mouse.y;
+
+            int tx      = 50;  // topics' axes
+            int ty      = 250; // topics' initial axes
+            int spacing = 20;  // vertical space between topics
+            int topic_w = 150; // area able to click on
+            int topic_h = spacing;
+
+            for (int i = 0; i < npc[speaker]->num_topic; i++) {
+                int top_y = ty + i * spacing;
+
+                if (mouse_x >= tx && mouse_x <= tx + topic_w && mouse_y >= top_y &&
+                    mouse_y <= top_y + topic_h) {
+                    selected_topic = i;
+
+                    if (!choosing_topic) {
+                        choosing_topic = true;
+                        active_topic   = -1;
+                    }
+
+                    if (mouse[1]) {
+                        active_topic   = selected_topic;
+                        choosing_topic = false;
+                        show_intro     = false;
+                    }
+
+                    break;
+                }
+            }
+        }
+    }
 }

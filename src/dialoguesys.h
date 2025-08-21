@@ -12,8 +12,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define WORDS_MAX 1024
-
 typedef enum {
     NPC_JEFFERSON,
     NPC_CLOWNGIRL,
@@ -23,6 +21,7 @@ typedef enum {
     NPC_BANGER_THE_KILLER,
     NPC_NICE_CORP,
     NPC_ANAHI,
+    NPC_BOZZO,
     NUM_NPCS,
 } NPCID;
 
@@ -36,31 +35,32 @@ typedef enum {
 } TopicID;
 
 typedef struct {
-    char* topic;
-    char* text;
-    char* intro_text; // in case of error, change it for const char.
+    char *topic;
+    char *text;
+    char *intro_text; // in case of error, change it for const char.
 } Topic;
 
 typedef struct {
-    ALLEGRO_BITMAP* portrait_id;
-    const char* name;
+    ALLEGRO_BITMAP *portrait_id;
+    const char *name;
     int num_topic;
-    Topic* topics;
+    Topic *topics;
 } NPC;
 
-extern NPC* npc[];
+void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text);
+NPC *CreateNpc(const char *name, int num_topic);
+void FillTopic(NPC *npc, int index, char *topic, char *text);
+void LoadDlg(NPC *npc, const char *topic);
+void DrawTopicMenu(NPC *npc, int selected);
+void DescBox(const char *text);
+void InitStdFont();
+void FillIntro(NPC *npc, char *text);
+void ExplodeFont();
+
+extern NPC *npc[];
 extern ALLEGRO_FONT *font_std, *font_subtitle;
 extern ALLEGRO_COLOR font_color, name_color;
 extern ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light;
 extern bool learned_topics[NUM_TOPICS];
-
-void DlgBox(ALLEGRO_BITMAP* portrait, const char* name, char* text);
-NPC* CreateNpc(const char* name, int num_topic);
-void FillTopic(NPC* npc, int index, char* topic, char* text);
-void LoadDlg(NPC* npc, const char* topic);
-void DrawTopicMenu(NPC* npc, int selected);
-void InitStdFont();
-void FillIntro(NPC* npc, char* text);
-void ExplodeFont();
 
 #endif

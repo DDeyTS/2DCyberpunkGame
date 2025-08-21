@@ -21,7 +21,7 @@
 //
 //==========================================================================
 
-void NpcLoader(NPC* npc[])
+void NpcLoader(NPC *npc[])
 {
     /*
       ID 0, “Jefferson”.
@@ -35,12 +35,11 @@ void NpcLoader(NPC* npc[])
     npc[NPC_JEFFERSON]->portrait_id =
         al_load_bitmap("portraits/drugdealer_portrait.png");
     FillIntro(npc[NPC_JEFFERSON], "What's up, bro. Are you okay?");
-    FillTopic(
-        npc[NPC_JEFFERSON], 0, "Drugs",
-        "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
-        "course, leavin' behind the cooldown you suffers after the effect "
-        "is gone. Bad stuff, however, it's like a violent punch in your "
-        "pancreas.");
+    FillTopic(npc[NPC_JEFFERSON], 0, "Drugs",
+              "Do ya want which of 'em? Good stuff helps ya to relax the body; of "
+              "course, leavin' behind the cooldown you suffers after the effect "
+              "is gone. Bad stuff, however, it's like a violent punch in your "
+              "pancreas.");
     FillTopic(npc[NPC_JEFFERSON], 1, "Dolls",
               "They're everywhere, bro. In every street. They know 'bout "
               "absolutely everything inside this district!");
@@ -64,9 +63,8 @@ void NpcLoader(NPC* npc[])
     npc[NPC_CLOWNGIRL]->portrait_id =
         al_load_bitmap("portraits/clowngirl_portrait.png");
     FillIntro(npc[NPC_CLOWNGIRL], "Helloooooooo, guys!");
-    FillTopic(
-        npc[NPC_CLOWNGIRL], 0, "Who are you?",
-        "Who am I? Do ya really want to ask for that? I'm a clown, dumb!");
+    FillTopic(npc[NPC_CLOWNGIRL], 0, "Who are you?",
+              "Who am I? Do ya really want to ask for that? I'm a clown, dumb!");
     FillTopic(npc[NPC_CLOWNGIRL], 1, "Funny",
               "Yeah, yeah... I'm fuckin' funny. Very, very funny!");
 
@@ -78,17 +76,15 @@ void NpcLoader(NPC* npc[])
       kill specific targets while she's with them. The opportune kis of death.
       She has cybernetic razors beneath her fake nails.
     */
-    npc[NPC_RAQUEL] = CreateNpc("Raquel", 1);
-    npc[NPC_RAQUEL]->portrait_id =
-        al_load_bitmap("portraits/raquel_portrait.png");
+    npc[NPC_RAQUEL]              = CreateNpc("Raquel", 1);
+    npc[NPC_RAQUEL]->portrait_id = al_load_bitmap("portraits/raquel_portrait.png");
     FillIntro(npc[NPC_RAQUEL],
               "Nah-ah, babe. You'll not have me riding on ya. Take a "
               "walk and finds another doll to play with.");
-    FillTopic(
-        npc[NPC_RAQUEL], 0, "Doll",
-        "They can be all you want to play with, babe. A tall man, a young "
-        "woman... After that, you delight of their bodies like never did "
-        "before. Of course, for a |price. Always it has a price.");
+    FillTopic(npc[NPC_RAQUEL], 0, "Doll",
+              "They can be all you want to play with, babe. A tall man, a young "
+              "woman... After that, you delight of their bodies like never did "
+              "before. Of course, for a |price. Always it has a price.");
 
     /*
       ID 3, “Cinder”.
@@ -97,18 +93,16 @@ void NpcLoader(NPC* npc[])
       district that is dominated by privated forces. She also has a big appeal
       for men that has an iron fist to retain what is yours.
     */
-    npc[NPC_CINDER] = CreateNpc("Cinder", 1);
-    npc[NPC_CINDER]->portrait_id =
-        al_load_bitmap("portraits/cinder_portrait.png");
+    npc[NPC_CINDER]              = CreateNpc("Cinder", 1);
+    npc[NPC_CINDER]->portrait_id = al_load_bitmap("portraits/cinder_portrait.png");
     FillIntro(npc[NPC_CINDER],
               "Hi, confuse man. Are you here to stare me like a erect "
               "perv’ or you'll tell something? C'mon. I won't bite you.");
-    FillTopic(
-        npc[NPC_CINDER], 0, "Bettingshop",
-        "That cursed place? The |kingdom |of |cash. I hang out with a |corp "
-        "once; he was disgusting, honestly. Anybody who goes there hardly can "
-        "keep the bank account filled. If you're wanna step on there, take "
-        "care.");
+    FillTopic(npc[NPC_CINDER], 0, "Bettingshop",
+              "That cursed place? The |kingdom |of |cash. I hang out with a |corp "
+              "once; he was disgusting, honestly. Anybody who goes there hardly can "
+              "keep the bank account filled. If you're wanna step on there, take "
+              "care.");
 
     /*
        ID 4, “Cheeks”.
@@ -119,8 +113,7 @@ void NpcLoader(NPC* npc[])
     npc[NPC_CHEEKS] = CreateNpc("Cheeks", 1);
     npc[NPC_CHEEKS]->portrait_id =
         al_load_bitmap("portraits/bigcheeks_portrait.png");
-    FillIntro(npc[NPC_CHEEKS],
-              "What's uuuuup, my friend! How can I help ya today?");
+    FillIntro(npc[NPC_CHEEKS], "What's uuuuup, my friend! How can I help ya today?");
     FillTopic(
         npc[NPC_CHEEKS], 0, "Nightclub",
         "There are a lot of over there. Follow your sixth sense, dude, follow "
@@ -149,10 +142,13 @@ void NpcLoader(NPC* npc[])
         al_load_bitmap("portraits/nice_corpguy_face.png");
     FillIntro(npc[NPC_NICE_CORP], "I do not have cash for you, sir. Go away.");
 
-    npc[NPC_ANAHI] = CreateNpc("Anahi", 0);
-    npc[NPC_ANAHI]->portrait_id =
-        al_load_bitmap("portraits/anahi_portrait.png");
+    npc[NPC_ANAHI]              = CreateNpc("Anahi", 0);
+    npc[NPC_ANAHI]->portrait_id = al_load_bitmap("portraits/anahi_face.png");
     FillIntro(npc[NPC_ANAHI], "Hi. How can I help you, dear soul?");
+
+    npc[NPC_BOZZO]              = CreateNpc("Bozzo", 0);
+    npc[NPC_BOZZO]->portrait_id = al_load_bitmap("portraits/bozzo_face.png");
+    FillIntro(npc[NPC_BOZZO], "You shouldn't be here...");
 }
 
 //==========================================================================
@@ -167,7 +163,7 @@ void NpcLoader(NPC* npc[])
 void UnlockExtraTopics()
 {
     {
-        NPC* jeff = npc[NPC_JEFFERSON];
+        NPC *jeff = npc[NPC_JEFFERSON];
         if (learned_topics[TOPIC_RONALDO]) {
             jeff->topics =
                 realloc(jeff->topics, sizeof(Topic) * (jeff->num_topic + 1));
@@ -178,10 +174,10 @@ void UnlockExtraTopics()
     }
 
     {
-        NPC* raquel = npc[NPC_RAQUEL];
+        NPC *raquel = npc[NPC_RAQUEL];
         if (learned_topics[TOPIC_PRICE]) {
-            raquel->topics = realloc(raquel->topics,
-                                     sizeof(Topic) * (raquel->num_topic + 1));
+            raquel->topics =
+                realloc(raquel->topics, sizeof(Topic) * (raquel->num_topic + 1));
             FillTopic(raquel, raquel->num_topic, "Price",
                       "Gimme 500 reais and the brunette girl here will give "
                       "you the best "

@@ -2,9 +2,9 @@
 #define TILE_RENDER_H
 
 #include <allegro5/allegro.h>
-#include <allegro5/allegro_primitives.h>
-// #include <stdio.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_primitives.h>
+
 #include <tmx.h>
 
 #define LINE_THICKNESS 2.5f

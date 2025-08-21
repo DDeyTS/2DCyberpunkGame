@@ -4,7 +4,9 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/events.h>
 #include <allegro5/keyboard.h>
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -20,8 +22,6 @@ typedef struct {
     ALLEGRO_MOUSE_CURSOR *aim, *clicking, *normal, *view;
 } Mousecursors;
 
-extern Mousecursors cursors;
-
 enum CursorType {
     CURSOR_NORMAL,
     // CURSOR_CLICK,
@@ -29,8 +29,10 @@ enum CursorType {
     CURSOR_EYE,
 };
 
+extern Mousecursors cursors;
+extern tmx_map *map;
+extern ALLEGRO_EVENT ev;
 extern bool keys[ALLEGRO_KEY_MAX], mouse[MOUSE_MAX + 1];
 extern int mouse_x, mouse_y;
-extern tmx_map* map;
 
 #endif

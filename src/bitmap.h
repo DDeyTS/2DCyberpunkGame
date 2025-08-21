@@ -16,7 +16,7 @@ typedef enum {
 typedef struct {
     int frame_w, frame_h, rows, cols;
     float px, py;
-    ALLEGRO_BITMAP* protag;
+    ALLEGRO_BITMAP *protag;
 } SpriteSheetInfo;
 
 extern SpriteSheetInfo spr, ent[];
@@ -24,6 +24,7 @@ extern SpriteSheetInfo spr, ent[];
 void InitBitmap(void);
 void BitmapExplode(void);
 void DrawProtag(void);
-void SpriteMovement(bool keys[], float* px, float* py, float sp, int* fx, int* fy, float frames);
-void SpriteAimAtCursor(float px, float py, int* fy);
+void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *fy,
+                    float frames);
+void SpriteAimAtCursor(float px, float py, int *fy);
 #endif
