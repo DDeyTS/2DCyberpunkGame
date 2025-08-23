@@ -2,7 +2,8 @@
 //**
 //** File: dialoguesys.c (CyberSP Project)
 //** Purpose: NPC chat window
-//** Last Update: 21-08-2025
+//**
+//** Last Update: 23-08-2025 14:25
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -10,22 +11,29 @@
 #include "dialoguesys.h"
 #include "textdat.h"
 
+// MACROS ///////////////////////////////////////////////////////////////////
+
 #define WORDS_MAX 1024
 
-// EXTERNAL FUNCTION PROTOTYPES ///////////
+// EXTERNAL FUNCTION PROTOTYPES /////////////////////////////////////////////
+
 void InitStdFont();
 TopicID GetTopicID(const char *topic);
 void LearnTopic(const char *topic);
 void ExplodeFont();
 
-// EXTERNAL DATA DECLARATIONS ///////////
+// EXTERNAL DATA DECLARATIONS ///////////////////////////////////////////////
+
 NPC *npc[NUM_NPCS];
+DescriptionObj *desc[100]; // TODO: finding a lighter way to quantify the amount of
+                          // description texts inside this array
 ALLEGRO_FONT *font_std, *font_subtitle;
 ALLEGRO_COLOR font_color, name_color;
 ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light = NULL;
 bool learned_topics[NUM_TOPICS] = {false};
 
-// PRIVATE DATA DEFINITIONS ///////////
+// PRIVATE DATA DEFINITIONS /////////////////////////////////////////////////
+
 static ALLEGRO_COLOR highlight_color;
 static ALLEGRO_FONT *font_name;
 
@@ -33,7 +41,9 @@ static ALLEGRO_FONT *font_name;
 //
 //    CreateNpc
 //
-//    Stores the NPC's name and amount of possible topics.
+//    Argument: const char *name    - NPC's name
+//              int num_topic       - number of topics the NPC can have
+//    Return:   NPC                 - pointer to newly allocated NPC struct
 //
 //==========================================================================
 
@@ -50,8 +60,11 @@ NPC *CreateNpc(const char *name, int num_topic)
 //
 //    FillTopic
 //
-//    Stores the topic's ID and tag, as well as the dialogue text related to
-//    it.
+//    Argument: NPC *npc            - pointer to the specific NPC
+//              int index           - index of the topic to fill
+//              int char *topic     - topic tag name
+//              int char *text      - respective dialogue
+//    Return:   void
 //
 //==========================================================================
 
@@ -66,7 +79,9 @@ void FillTopic(NPC *npc, int index, char *topic, char *text)
 //
 //    FillIntro
 //
-//    Stores the NPC's introduction text.
+//    Argument: NPC *npc        - pointer to the specific NPC
+//              char * text     - introduction dialogue
+//    Retunr:   void
 //
 //==========================================================================
 
@@ -77,11 +92,16 @@ void FillIntro(NPC *npc, char *text)
 
 //==========================================================================
 //
-//    DlgBox
+//    InitDlgBox
+//
+//    Argument: ALLEGRO_BITMAP * portrait    - portrait of NPC
+//              const char *name             - NPC's name
+//              char *text                   - dialogue text to display
+//    Return:   void
 //
 //==========================================================================
 
-void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text)
+void InitDlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text)
 {
     // Box attributes
     float box_w = 640;
@@ -195,15 +215,17 @@ void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text)
 
 //==========================================================================
 //
-//    DrawTopicMenu
+//    InitTopicMenu
 //
-//    Window with a list of topics to ask for.
+//    Argument: NPC *npc        - pointer to the specific NPC
+//              int selected    - index of the currently selected topic
+//    Return    void
 //
-//    FIXME: controls the height of the topic list.
+//    FIXME: need to control the height of the topic list.
 //
 //==========================================================================
 
-void DrawTopicMenu(NPC *npc, int selected)
+void InitTopicMenu(NPC *npc, int selected)
 {
     if (npc->num_topic <= 0) return;
 
@@ -225,19 +247,23 @@ void DrawTopicMenu(NPC *npc, int selected)
 //
 //    LoadDlg
 //
-//    Loads every NPC's dialogue and relacted topic to trigger it.
+//    Argument: NPC *npc            - pointer to the specific NPC
+//              const char *topic   - dialogue to load
+//    Return:   void
 //
 //==========================================================================
 
-void LoadDlg(NPC *npc, const char *topic)
+void LoadDlg(NPC *npc, const char *dialogue)
 {
+    // Introduction dialogue
     if (npc->topics->intro_text) {
-        DlgBox(npc->portrait_id, npc->name, npc->topics->intro_text);
+        InitDlgBox(npc->portrait_id, npc->name, npc->topics->intro_text);
     }
 
+    // Topic dialogue
     for (int i = 0; i < npc->num_topic; i++) {
-        if (strcmp(npc->topics[i].topic, topic) == 0) {
-            DlgBox(npc->portrait_id, npc->name, npc->topics[i].text);
+        if (strcmp(npc->topics[i].topic, dialogue) == 0) {
+            InitDlgBox(npc->portrait_id, npc->name, npc->topics[i].text);
             if (!npc->portrait_id) {
                 printf("Warning: NPC '%s' is without portrait\n", npc->name);
                 exit(1);
@@ -252,7 +278,8 @@ void LoadDlg(NPC *npc, const char *topic)
 //
 //    GetTopicID
 //
-//    Memorizes any said topic by any NPC.
+//    Argument: const char* topic       - specific topic to get
+//    Return:   TopicID                 - enum for the topic
 //
 //==========================================================================
 
@@ -270,7 +297,8 @@ TopicID GetTopicID(const char *topic)
 //
 //    LearnTopic
 //
-//    Loads the learned topic.
+//    Argument: const char *topic       - specific topic to learn
+//    Return:   void
 //
 //==========================================================================
 
@@ -279,7 +307,7 @@ void LearnTopic(const char *topic)
     TopicID id = GetTopicID(topic);
     if (id != NONE_TOPIC && !learned_topics[id]) {
         learned_topics[id] = true;
-        // debugger
+        // NOTE: debugger below
         printf("Novo tópico aprendido: %s (ID %d)\n", topic, id);
 
         UnlockExtraTopics();
@@ -288,95 +316,207 @@ void LearnTopic(const char *topic)
 
 //==========================================================================
 //
-//    DescBox
+//    InitDescBox
 //
-//    Prints little descriptions about anything player want to see in detail
+//    Argument: float box_x            - X position of the description box
+//              float box_y            - Y position of the description box
+//              const char *text       - description text to display
+//    Return:   void
+//
+//    TODO: making a function to store every description text. 
 //
 //==========================================================================
 
-void DescBox(const char *text)
+void InitDescBox(float box_x, float box_y, const char *text)
 {
-    float max_box = 250;
-    float box_x = 100, box_y = 100;
-    float padding = 10;
+    const float padding    = 10.0f;
+    const float wrap_w_cap = 200.0f; // max width to line break (without padding)
+    const int line_h       = al_get_font_line_height(
+        font_std); // height of each line based on the used font
+    const int space_w = al_get_text_width(
+        font_std, " "); // width of each space key based on the used font
 
-    float text_x = box_x + padding;
-    float text_y = box_y + padding;
-
-    int line_h     = al_get_font_line_height(font_std);
-    int line_count = 1;
-
-    // LINES COUNTER ///////////
+    // copy the description text to a word buffer
     char buffer[WORDS_MAX];
     strncpy(buffer, text, sizeof(buffer));
     buffer[sizeof(buffer) - 1] = '\0';
 
-    char *word     = strtok(buffer, " ");
-    float cursor_x = text_x; // text cursor, not the mouse cursor
-    float safe_w   = max_box - 2 * padding;
+    // acumulators to size the box
+    float line_w = 0.0f; // max width of the current line (without padding)
+    float widest = 0.0f; // bigger width between all the lines (without padding)
+    int lines    = 1;    // starts from 1st line
 
-    while (word) {
-        int word_w  = al_get_text_width(font_std, word);
-        int space_w = al_get_text_width(font_std, " ");
+    // it's time to size how much lines and what width it need
+    // for each word in the buffer, split by spaces and stored in the pointer, as
+    // long as it isn't null, the pointer will update to store the next word:
+    for (char *w = strtok(buffer, " "); w; w = strtok(NULL, " ")) {
+        const char *draw = (w[0] == '|') ? w + 1 : w;
+        int ww           = al_get_text_width(font_std, draw); // current width
 
-        if (cursor_x + word_w > text_x + safe_w) {
-            line_count++;
-            cursor_x = text_x;
+        // adds padding before printed words (except at first line)
+        int add = (line_w > 0) ? space_w : 0;
+
+        // if it adding this word + space will blow up the width limit:
+        if (line_w + add + ww > wrap_w_cap) {
+            if (line_w > widest) widest = line_w; // stores bigger line so far
+            lines++;                              // new line
+            line_w = (float)ww;                   // original width of the new line
+        } else {
+            line_w += add + ww; // continues accmulating in the same line
         }
-        cursor_x += word_w + space_w;
-
-        word = strtok(NULL, " ");
     }
+    if (line_w > widest) widest = line_w; // last line can be the widest
 
-    int box_w = max_box;
-    int box_h = (line_count * line_h) + padding * 2;
+    // computes description window with padding around the text
+    float inner_w = widest;
+    float box_w   = inner_w + 2 * padding;
+    if (box_w < 60.0f) box_w = 60.0f; // minimum width
+    if (box_w > wrap_w_cap + 2 * padding)
+        box_w = wrap_w_cap + 2 * padding; // maximum width
 
-    // DRAWS TEXT TEMPORARY BOX ///////////
+    float box_h = lines * line_h + 2 * padding;
+
+    // Draws description box
     al_draw_filled_rectangle(box_x, box_y, box_x + box_w, box_y + box_h,
-                             al_map_rgba(0, 0, 50, 200));
+                             al_map_rgba(0, 0, 50, 100));
 
-    // DESCRIPTION PRINTER ///////////
-    // resets to start printing text
+    // Print description text
+    float text_x = box_x + padding;
+    float text_y = box_y + padding;
+    float safe_w = box_w - 2 * padding; // safe width inside the box
+
+    // resets word buffer to use strtok() again
     strncpy(buffer, text, sizeof(buffer));
     buffer[sizeof(buffer) - 1] = '\0';
 
-    word     = strtok(buffer, " ");
-    cursor_x = text_x; // text cursor, not the mouse cursor
-    text_y   = box_y + padding;
+    float cx = 0.0f; // horizontal cursor inside the current line
 
-    while (word) {
-        bool is_highlight     = false;
-        const char *draw_word = word;
+    for (char *w = strtok(buffer, " "); w; w = strtok(NULL, " ")) {
+        bool is_highlight = (w[0] == '|'); // checks if it has '|'
+        const char *draw  = is_highlight ? w + 1 : w;
+        int ww            = al_get_text_width(font_std, draw);
 
-        if (word[0] == '|') {
-            is_highlight = true;
-            draw_word    = word + 1;
+        int add = (cx > 0.0f) ? space_w : 0;
+
+        // if it goes beyond the safe width, break the line
+        if (cx + add + ww > safe_w) {
+            // next line
+            text_y += line_h; // resets cursor
+            cx  = 0.0f;       // first word doesn't have space before it
+            add = 0;
         }
 
-        int word_w  = al_get_text_width(font_std, draw_word);
-        int space_w = al_get_text_width(font_std, " ");
+        // last position of this word
+        cx += add;
 
-        if (cursor_x + word_w > text_x + safe_w) {
-            text_y += line_h;
-            cursor_x = text_x;
+        // draws the word with normal color or highlight (yellow)
+        al_draw_text(font_std, is_highlight ? highlight_color : font_color,
+                     text_x + cx, text_y, 0, draw);
 
-            // if (line_count >= max_lines)
-            //     break;
-        }
+        // goes ahead the cursor to the next word
+        cx += ww;
 
-        al_draw_text(font_std, is_highlight ? highlight_color : font_color, cursor_x,
-                     text_y, 0, draw_word);
-
-        cursor_x += word_w + space_w;
-        word = strtok(NULL, " ");
+        // everything will repeat until strtok() becoming NULL
     }
+
+    /*
+     * keep this old block of code below for emergency reasons
+     */
+
+    // float padding = 10;
+    // float text_x  = box_x + padding;
+    // float text_y  = box_y + padding;
+    // float max_box = text_x;
+    // if (max_box >= 250) max_box = 250;
+    // int line_h     = al_get_font_line_height(font_std);
+    // int line_count = 1;
+    //
+    // // Lines Counter
+    //
+    // char buffer[WORDS_MAX];
+    // strncpy(buffer, text, sizeof(buffer));
+    // buffer[sizeof(buffer) - 1] = '\0';
+    //
+    // char *word     = strtok(buffer, " ");
+    // float cursor_x = text_x; // text cursor, not the mouse cursor
+    // float safe_w   = max_box - 2 * padding;
+    //
+    // int text_w = 0;
+    //
+    // while (word) {
+    //     int word_w  = al_get_text_width(font_std, word);
+    //     int space_w = al_get_text_width(font_std, " ");
+    //
+    //     if (cursor_x + word_w > text_x + safe_w) {
+    //         line_count++;
+    //         cursor_x = text_x;
+    //
+    //         if (text_w == 0) {
+    //             text_w = word_w;
+    //         }
+    //     }
+    //     cursor_x += word_w + space_w;
+    //
+    //     word = strtok(NULL, " ");
+    // }
+    //
+    // printf("%d\n", text_w);
+    //
+    // int box_w = max_box;
+    // int box_h = (line_count * line_h) + padding * 2;
+    //
+    // // Temporary Box
+    //
+    // al_draw_filled_rectangle(box_x, box_y, box_x + text_w, box_y + box_h,
+    //                          al_map_rgba(0, 0, 50, 200));
+    //
+    // // Description Printer
+    //
+    // // resets to start printing text
+    // strncpy(buffer, text, sizeof(buffer));
+    // buffer[sizeof(buffer) - 1] = '\0';
+    //
+    // word     = strtok(buffer, " ");
+    // cursor_x = text_x; // text cursor, not the mouse cursor
+    // text_y   = box_y + padding;
+    //
+    // while (word) {
+    //     bool is_highlight     = false;
+    //     const char *draw_word = word;
+    //
+    //     if (word[0] == '|') {
+    //         is_highlight = true;
+    //         draw_word    = word + 1;
+    //     }
+    //
+    //     int word_w  = al_get_text_width(font_std, draw_word);
+    //     int space_w = al_get_text_width(font_std, " ");
+    //
+    //     if (cursor_x + word_w > text_x + safe_w) {
+    //         text_y += line_h;
+    //         cursor_x = text_x;
+    //
+    //         // if (line_count >= max_lines)
+    //         //     break;
+    //     }
+    //
+    //     al_draw_text(font_std, is_highlight ? highlight_color : font_color,
+    //     cursor_x,
+    //                  text_y, 0, draw_word);
+    //
+    //     cursor_x += word_w + space_w;
+    //     word = strtok(NULL, " ");
+    // }
 }
 
 //==========================================================================
 //
 //    InitStdFont
 //
-//    Loads and run the game's standard fonts.
+//    Argument: void
+//    Return:   void
+//
+//    NOTE: this function loads all the fonts of the game.
 //
 //==========================================================================
 
@@ -411,6 +551,11 @@ void InitStdFont()
 //==========================================================================
 //
 //    ExplodeFont
+//
+//    Argument: void
+//    Return:   void
+//
+//    NOTE: this function destroys every font loaded before.
 //
 //==========================================================================
 

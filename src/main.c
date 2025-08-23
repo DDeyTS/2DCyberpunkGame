@@ -2,16 +2,18 @@
 //**
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
-//** Last Update: 21-08-2025
+//**
+//** Last Update: 23-08-2025 16:10
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 /*
- * INPUT-PROCESS-OUTPUT LIST TO DO (16-08-25)
+ * INPUT-PROCESS-OUTPUT LIST TO DO (22-08-25)
  * 1. Colision walls on the map.
  * 2. Little description window. (Done!)
  * 3. Eye cursor to read descriptions (like items, for instance). (Done!)
+ *     3a. Eye cursor can open the description window clicking on something. (Done!)
  * 4. NPC sprite render.
  */
 
@@ -22,18 +24,21 @@
 #include "textdat.h"
 #include "tile_render.h"
 
-// PRIVATE FUNCTION PROTOTYPES ///////////
+// PRIVATE FUNCTION PROTOTYPES //////////////////////////////////////////////
+
 static void KeyboardOn();
 static void MouseOn();
 
-// EXTERNAL DATA DECLARATIONS ///////////
+// EXTERNAL DATA DECLARATIONS ///////////////////////////////////////////////
+
 Mousecursors cursors;
 tmx_map *map = NULL;
 ALLEGRO_EVENT ev;
 bool keys[ALLEGRO_KEY_MAX], mouse[MOUSE_MAX + 1];
 int mouse_x, mouse_y = 0;
 
-// PUBLIC DATA DEFINITIONS ///////////
+// PUBLIC DATA DEFINITIONS //////////////////////////////////////////////////
+
 ALLEGRO_DISPLAY *disp;
 ALLEGRO_EVENT_QUEUE *queue;
 ALLEGRO_TIMER *timer;
@@ -41,8 +46,10 @@ ALLEGRO_EVENT ev;
 ALLEGRO_MOUSE_CURSOR *cursor   = NULL;
 enum CursorType current_cursor = CURSOR_NORMAL;
 bool mouse_animating           = false;
+bool show_desc                 = false;
 
-// PRIVATE DATA DEFINITIONS ///////////
+// PRIVATE DATA DEFINITIONS /////////////////////////////////////////////////
+
 static double anim_timer    = 0.0;  // in case of trouble, use double
 static double anim_duration = 0.15; // same above
 static bool show_intro      = true;
@@ -56,11 +63,13 @@ static int active_topic     = -1;
 //
 //    Main Game
 //
+//    Initializers, game loop, crusher... etc.
+//
 //==========================================================================
 
 int main()
 {
-    // INITIALIZERS ///////////
+    // INITIALIZERS /////////////////////////////////////////////////////////
 
     if (!al_init() || !al_init_image_addon() || !al_init_primitives_addon() ||
         !al_install_keyboard() || !al_init_font_addon() || !al_init_ttf_addon() ||
@@ -70,7 +79,7 @@ int main()
     }
     InitStdFont();
     InitBitmap();
-    NpcLoader(npc);
+    NpcDlgStorage(npc);
 
     disp             = al_create_display(DISPW, DISPH);
     queue            = al_create_event_queue();
@@ -82,7 +91,7 @@ int main()
     cursor           = cursors.normal;
     al_set_mouse_cursor(disp, cursor);
 
-    // EVENT QUEUE //////////
+    // EVENT QUEUE //////////////////////////////////////////////////////////
 
     al_register_event_source(queue, al_get_display_event_source(disp));
     al_register_event_source(queue, al_get_timer_event_source(timer));
@@ -90,7 +99,7 @@ int main()
     al_register_event_source(queue, al_get_keyboard_event_source());
     al_start_timer(timer);
 
-    // PLAYER MOVEMENT ///////////
+    // PLAYER MOVEMENT //////////////////////////////////////////////////////
 
     spr.px = 320;
     spr.py = 200;
@@ -102,7 +111,7 @@ int main()
     // Sprite Frames
     float frames = 0.f;
 
-    // GAME LOOP ///////////
+    // GAME LOOP ////////////////////////////////////////////////////////////
 
     bool running = true;
     bool redraw  = true;
@@ -173,19 +182,22 @@ int main()
             RenderMap(map);
 
             DrawProtag();
-            DescBox("Hello, folks. You are seeing a little description box working "
-                    "perfectly (I hope so). The player can read about any detail, "
-                    "like a poster glued on the wall.");
+
+            // NOTE: rectangle to debug description window
+            // al_draw_filled_rectangle(350, 125, 450, 200, al_map_rgba(0, 100, 0, 200));
+            if (show_desc) {
+                InitDescBox(325, 100, "A lone bus stop.");
+            }
 
             if (dlg_open) {
                 if (show_intro) {
-                    DlgBox(npc[speaker]->portrait_id, npc[speaker]->name,
-                           npc[speaker]->topics->intro_text);
+                    InitDlgBox(npc[speaker]->portrait_id, npc[speaker]->name,
+                               npc[speaker]->topics->intro_text);
                 } else if (active_topic >= 0) {
                     const char *topic = npc[speaker]->topics[selected_topic].topic;
                     LoadDlg(npc[speaker], topic);
                 }
-                DrawTopicMenu(npc[speaker], selected_topic);
+                InitTopicMenu(npc[speaker], selected_topic);
             }
 
             al_flip_display();
@@ -193,7 +205,7 @@ int main()
         }
     }
 
-    // GAME CRUSHER ///////////
+    // GAME CRUSHER /////////////////////////////////////////////////////////
 
     // Dialogue Sys
     al_destroy_bitmap(npc[speaker]->portrait_id);
@@ -219,6 +231,11 @@ int main()
 //==========================================================================
 //
 //    KeyboardOn
+//
+//    Argument: void
+//    Return:   void
+//
+//    NOTE: this functions contains every keyboard operation.
 //
 //==========================================================================
 
@@ -285,6 +302,11 @@ void KeyboardOn()
 //
 //    MouseOn
 //
+//    Argument: void
+//    Return:   void
+//
+//    NOTE: this function contains every mouse operation.
+//
 //==========================================================================
 
 void MouseOn()
@@ -296,9 +318,22 @@ void MouseOn()
     }
 
     // Mouse Boolean
-    if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN &&
-        (current_cursor != CURSOR_TARGET && current_cursor != CURSOR_EYE)) {
+    if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
         mouse[ev.mouse.button] = true;
+
+        // checks if eye cursor click on the object
+        if (current_cursor == CURSOR_EYE && mouse[1]) {
+            int rect_x = 350, rect_y = 125;
+            int rect_w = rect_x + 100, rect_h = rect_y + 75;
+
+            // finds the collisin to trigger InitDescBox()
+            if (mouse_x >= rect_x && mouse_x <= rect_w && mouse_y >= rect_y &&
+                mouse_y <= rect_h) {
+                show_desc     = true;
+                // debugger below
+                printf("Apareceu a caixa!\n");
+            }
+        }
     } else if (ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
         mouse[ev.mouse.button] = false;
     }
@@ -315,7 +350,7 @@ void MouseOn()
         dlg_open) {
 
         if (!choosing_topic && ev.type == ALLEGRO_EVENT_MOUSE_AXES) {
-            // NOTE: it does nothing, just ignore this event
+            // nothing happens, just ignore the event
         } else {
             mouse_x = ev.mouse.x;
             mouse_y = ev.mouse.y;
@@ -326,25 +361,28 @@ void MouseOn()
             int topic_w = 150; // area able to click on
             int topic_h = spacing;
 
+            // as long as integer is lesser than NPC's number of topics, do the loop
+            // body, then increment integer by 1 for the next topic:
             for (int i = 0; i < npc[speaker]->num_topic; i++) {
                 int top_y = ty + i * spacing;
 
+                // checks if mouse is inside the clickable area of the topic
                 if (mouse_x >= tx && mouse_x <= tx + topic_w && mouse_y >= top_y &&
                     mouse_y <= top_y + topic_h) {
-                    selected_topic = i;
+                    selected_topic = i; // defines the chosen topic
 
                     if (!choosing_topic) {
                         choosing_topic = true;
-                        active_topic   = -1;
+                        active_topic   = -1; // no active topic, yet
                     }
 
                     if (mouse[1]) {
-                        active_topic   = selected_topic;
-                        choosing_topic = false;
-                        show_intro     = false;
+                        active_topic   = selected_topic; // topic is activated
+                        choosing_topic = false;          // quit from choosing mode
+                        show_intro     = false;          // hide the intro dialogue
                     }
 
-                    break;
+                    break; // finish loop when the mouse finds a topic
                 }
             }
         }

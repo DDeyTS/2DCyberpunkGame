@@ -2,7 +2,8 @@
 //**
 //** File: textdat.c (CyberSP Project)
 //** Purpose: Dialogue storage
-//** Last Update: 18-08-2025
+//**
+//** Last Update: 22-08-2025 01:09
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -10,18 +11,25 @@
 #include "textdat.h"
 #include "dialoguesys.h"
 
+// PUBLIC FUNCTION PROTOYPES ///////////////////////////////////////////////
+
+void UnlockExtraTopics();
+
+// PUBLIC DATA DECLARATIONS /////////////////////////////////////////////// 
+
 //==========================================================================
 //
-//    NpcLoader
+//    NpcDlgStorage
 //
-//    Each dialogue, NPC index and topics are stored here.
+//    Argument: NPC *npc        - specifies which NPC is talking
+//    Return:   void
 //
-//    WARNING: Everytime you'll write a dialogue, take care of the five lines
-//    limit, otherwise the text won't fit in the box.
+//    NOTE: everytime you'll write a dialogue, take care of the five lines limit
+//    otherwise the text won't fit in the upper dialogue box.
 //
 //==========================================================================
 
-void NpcLoader(NPC *npc[])
+void NpcDlgStorage(NPC *npc[])
 {
     /*
       ID 0, “Jefferson”.
@@ -155,13 +163,19 @@ void NpcLoader(NPC *npc[])
 //
 //    UnlockExtraTopics
 //
-//    Loads new topics and their respective dialogues when they're said by any
-//    NPC.
+//    Argument: void
+//    Return:   void
+//
+//    NOTE: this function allows the player to unlock new topics (as seen in both
+//    GetTopicID and LearnTopic functions) and their respective dialogues.
 //
 //==========================================================================
 
 void UnlockExtraTopics()
 {
+    // NOTE: each block of code below is so deep because to avoid declaring a lot of
+    // pointers at the same time
+
     {
         NPC *jeff = npc[NPC_JEFFERSON];
         if (learned_topics[TOPIC_RONALDO]) {
@@ -169,7 +183,7 @@ void UnlockExtraTopics()
                 realloc(jeff->topics, sizeof(Topic) * (jeff->num_topic + 1));
             FillTopic(jeff, jeff->num_topic, "Ronaldo",
                       "Just get the hell o' here!");
-            jeff->num_topic++;
+            jeff->num_topic++; // adds early number of topics by 1
         }
     }
 
@@ -186,3 +200,8 @@ void UnlockExtraTopics()
         }
     }
 }
+
+// void DescStorage(DescriptionObj *desc[])
+// {
+//     FillDesc(desc[0], "A lone bus stop.");
+// }

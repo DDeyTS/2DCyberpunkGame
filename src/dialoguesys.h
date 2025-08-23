@@ -47,17 +47,23 @@ typedef struct {
     Topic *topics;
 } NPC;
 
-void DlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text);
+typedef struct {
+    const char *description;
+    // int index;
+} DescriptionObj;
+
+void InitDlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text);
 NPC *CreateNpc(const char *name, int num_topic);
 void FillTopic(NPC *npc, int index, char *topic, char *text);
 void LoadDlg(NPC *npc, const char *topic);
-void DrawTopicMenu(NPC *npc, int selected);
-void DescBox(const char *text);
+void InitTopicMenu(NPC *npc, int selected);
+void InitDescBox(float box_x, float box_y, const char *text);
 void InitStdFont();
 void FillIntro(NPC *npc, char *text);
 void ExplodeFont();
 
 extern NPC *npc[];
+extern DescriptionObj *desc[];
 extern ALLEGRO_FONT *font_std, *font_subtitle;
 extern ALLEGRO_COLOR font_color, name_color;
 extern ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light;

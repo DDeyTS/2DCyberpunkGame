@@ -2,7 +2,8 @@
 //**
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
-//** Last Update: 19-08-2025
+//**
+//** Last Update: 23-08-2025 15:09
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -12,17 +13,22 @@
 #include "dialoguesys.h"
 #include "main.h"
 
-// EXTERNAL DATA DECLARATIONS ///////////
+// EXTERNAL DATA DECLARATIONS ///////////////////////////////////////////////
+
 SpriteSheetInfo spr, ent[NUM_ENTITY];
 
-// PRIVATE DATA DEFINITIONS ///////////
+// PRIVATE DATA DEFINITIONS /////////////////////////////////////////////////
+
 static int reset_frame = 0;
 
 //==========================================================================
 //
 //    InitBitmap
 //
-//    Loads the sprite sheet and each sprite.
+//    Argument: void
+//    Return:   void
+//
+//    Note: this function loads all the sprites.
 //
 //==========================================================================
 
@@ -77,7 +83,10 @@ void InitBitmap()
 //
 //    BitmapExplode
 //
-//    Destroys every made sprite when the game is closed!!!
+//    Argument: void
+//    Return:   void
+//
+//    NOTE: this function destroys every sprite when the game is closed!!!
 //
 //==========================================================================
 
@@ -97,8 +106,10 @@ void BitmapExplode()
 //
 //    DrawProtag
 //
-//    Draws the protagonist's sprite.
+//    Argument: void
+//    Return:   void
 //
+//    NOTE: Draws the protagonist's sprite.
 //    NOTE: if the sprite is scaled, take care of remembering to adapt
 //    the code for its new size.
 //
@@ -114,10 +125,17 @@ void DrawProtag()
 //
 //    SpriteMovement
 //
-//    Moves the sprite toward the direction he's facing.
+//    Argument: bool keys[]        - read which keys are pressed
+//              float *px          - entity's current X position
+//              float *py          - entity's current Y position
+//              float sp           - movement speed
+//              int *fx            - sprite sheet's row to animate
+//              int *fy            - sprite sheet's column to animate
+//              float frames       - number of frames per second
+//    Return:   void
 //
-//    TODO: attempt to use it with NPCs rather than with protagonist.
-//    TODO: aligning the movement when another key is pressed.
+//    TODO: try to use it with NPCs, too.
+//    TODO: aligning the movement when another key is pressed at the same time.
 //
 //==========================================================================
 
@@ -176,7 +194,7 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *f
 
     // Adjust speed
     if (dx != 0 && dy != 0) {
-        float adj = 1 / sqrt(2); // = 0.707f
+        float adj = 0.707f; // aka 1 / sqrt(2)
         mov_x *= adj;
         mov_y *= adj;
     }
@@ -188,6 +206,11 @@ void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *f
 //==========================================================================
 //
 //    SpriteAimAtCursor
+//
+//    Argument: float px        - current sprite's X position
+//              float py        - current sprite's Y position
+//              float *fy       - sprite sheet's column to animate
+//    Return:   void
 //
 //==========================================================================
 

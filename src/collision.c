@@ -28,8 +28,15 @@
 //
 //    RectSqColl
 //
-//    Creates either rectangular or square collision, useful to wall
-//    collisions.
+//    Argument: float px        - player/entity's current X position
+//              float py        - player/entity's current Y position
+//              int pw          - player/entity's width colision
+//              int ph          - player/entity's width colision
+//              float wall_x1   - wall left horizontal edge
+//              float wall_y1   - wall left vertical edge
+//              int wall_x2     - wall right horizontal edge
+//              int wall_y2     - wall right vertical edge
+//    Return:   bool
 //
 //==========================================================================
 
@@ -46,7 +53,13 @@ bool RectSqColl(float px, float py, int pw, int ph, float wall_x1, float wall_y1
 //
 //    CircleColl
 //
-//    The same above but focused on circular collision.
+//    Argument: float cx1       - player/entity's current X position
+//              float cy1       - player/entity's current Y position
+//              float r1        - player/entity's ray
+//              float cx2       - circle's current X position
+//              float cy2       - circle's current Y position
+//              float r2        - circle's ray
+//    Return:   bool
 //
 //==========================================================================
 
