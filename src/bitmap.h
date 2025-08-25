@@ -27,4 +27,8 @@ void DrawProtag(void);
 void SpriteMovement(bool keys[], float *px, float *py, float sp, int *fx, int *fy,
                     float frames);
 void SpriteAimAtCursor(float px, float py, int *fy);
+
+extern ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light;
+
+
 #endif

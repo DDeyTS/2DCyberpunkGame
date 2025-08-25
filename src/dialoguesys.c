@@ -10,6 +10,7 @@
 
 #include "dialoguesys.h"
 #include "textdat.h"
+#include "bitmap.h"
 
 // MACROS ///////////////////////////////////////////////////////////////////
 
@@ -29,7 +30,6 @@ DescriptionObj *desc[100]; // TODO: finding a lighter way to quantify the amount
                           // description texts inside this array
 ALLEGRO_FONT *font_std, *font_subtitle;
 ALLEGRO_COLOR font_color, name_color;
-ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light = NULL;
 bool learned_topics[NUM_TOPICS] = {false};
 
 // PRIVATE DATA DEFINITIONS /////////////////////////////////////////////////
@@ -109,7 +109,7 @@ void InitDlgBox(ALLEGRO_BITMAP *portrait, const char *name, char *text)
     float x = 0, y = 0;
 
     // Portrait attributes
-    float portrait_size = 165;
+    float portrait_size = 173;
 
     // Text attributes
     float padding     = 30;

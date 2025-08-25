@@ -3,18 +3,19 @@
 //** File: main.c (CyberSP Project)
 //** Purpose: Main game stuff
 //**
-//** Last Update: 23-08-2025 16:10
+//** Last Update: 25-08-2025 00:51
 //** Author: DDeyTS
 //**
 //**************************************************************************
 
 /*
- * INPUT-PROCESS-OUTPUT LIST TO DO (22-08-25)
- * 1. Colision walls on the map.
- * 2. Little description window. (Done!)
- * 3. Eye cursor to read descriptions (like items, for instance). (Done!)
- *     3a. Eye cursor can open the description window clicking on something. (Done!)
- * 4. NPC sprite render.
+ * LIST OF FEATURES TO DO (24-08-25)
+ * 1. Collision walls on the map.
+ * 2. NPC sprite render.
+ * 3. Shooter mode.
+ *     3a. Shooting with pistol.
+ *     3b. Damage system.
+ * 4. Description text storage.
  */
 
 #include "main.h"
@@ -26,8 +27,9 @@
 
 // PRIVATE FUNCTION PROTOTYPES //////////////////////////////////////////////
 
-static void KeyboardOn();
-static void MouseOn();
+static void KeyboardOn(void);
+static void MouseOn(void);
+static bool InitCursor(ALLEGRO_DISPLAY *disp);
 
 // EXTERNAL DATA DECLARATIONS ///////////////////////////////////////////////
 
@@ -42,21 +44,21 @@ int mouse_x, mouse_y = 0;
 ALLEGRO_DISPLAY *disp;
 ALLEGRO_EVENT_QUEUE *queue;
 ALLEGRO_TIMER *timer;
-ALLEGRO_EVENT ev;
-ALLEGRO_MOUSE_CURSOR *cursor   = NULL;
-enum CursorType current_cursor = CURSOR_NORMAL;
-bool mouse_animating           = false;
-bool show_desc                 = false;
+ALLEGRO_MOUSE_CURSOR *current_cursor = NULL;
+enum CursorType cursor_flag          = CURSOR_NORMAL;
+ALLEGRO_MOUSE_CURSOR *chosen_cursor;
+bool mouse_animating = false;
+bool show_desc       = false;
 
 // PRIVATE DATA DEFINITIONS /////////////////////////////////////////////////
 
-static double anim_timer    = 0.0;  // in case of trouble, use double
-static double anim_duration = 0.15; // same above
-static bool show_intro      = true;
-static bool dlg_open        = false;
-static bool choosing_topic  = true;
-static int speaker          = 0;
-static int selected_topic   = 0;
+static double anim_timer    = 0.0;  // NOTE: in case of trouble, use double
+static double anim_duration = 0.15; // NOTE: same above
+static bool show_intro      = true; // turn on the intro dialogue
+static bool dlg_open        = false; // turn on the chat mode
+static bool choosing_topic  = true; // turn on the topic list
+static int speaker          = 0; // flags the current NPC 
+static int selected_topic   = 0; 
 static int active_topic     = -1;
 
 //==========================================================================
@@ -67,7 +69,7 @@ static int active_topic     = -1;
 //
 //==========================================================================
 
-int main()
+int main(void)
 {
     // INITIALIZERS /////////////////////////////////////////////////////////
 
@@ -77,19 +79,19 @@ int main()
         perror("Fail to initialize Allegro\n");
         return 1;
     }
+
+    disp  = al_create_display(DISPW, DISPH);
+    queue = al_create_event_queue();
+    timer = al_create_timer(1.0 / 30.0);
+    if (!disp || !queue || !timer) {
+        perror("Fail to initialize basic stuff!\n");
+        return 1;
+    }
+
     InitStdFont();
     InitBitmap();
+    InitCursor(disp);
     NpcDlgStorage(npc);
-
-    disp             = al_create_display(DISPW, DISPH);
-    queue            = al_create_event_queue();
-    timer            = al_create_timer(1.0 / 30.0);
-    cursors.normal   = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
-    cursors.clicking = al_create_mouse_cursor(cursors.click_bmp, 0, 0);
-    cursors.aim      = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
-    cursors.view     = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
-    cursor           = cursors.normal;
-    al_set_mouse_cursor(disp, cursor);
 
     // EVENT QUEUE //////////////////////////////////////////////////////////
 
@@ -142,17 +144,20 @@ int main()
         if (ev.type == ALLEGRO_EVENT_TIMER) {
             // mouse clicking
             if (mouse_animating) {
-                if (cursor != cursors.clicking) {
-                    cursor = cursors.clicking;
-                    al_set_mouse_cursor(disp, cursor);
+                if (current_cursor != cursors.clicking && cursors.clicking) {
+                    current_cursor = cursors.clicking;
+                    al_set_mouse_cursor(disp, current_cursor);
                 }
                 if ((al_get_time() - anim_timer) >= anim_duration) {
                     mouse_animating = false;
+
+                    current_cursor = chosen_cursor;
+                    al_set_mouse_cursor(disp, current_cursor);
                 }
             } else {
-                if (cursor != cursors.normal) {
-                    cursor = cursors.normal;
-                    al_set_mouse_cursor(disp, cursor);
+                if (current_cursor != cursors.normal) {
+                    current_cursor = chosen_cursor;
+                    al_set_mouse_cursor(disp, current_cursor);
                 }
             }
 
@@ -163,7 +168,7 @@ int main()
             }
 
             // sprite follows cursor when aiming
-            if (current_cursor == CURSOR_TARGET) {
+            if (chosen_cursor == cursors.aim) {
                 SpriteAimAtCursor(spr.px, spr.py, &spr.frame_h);
                 spr.frame_w = 0;
             } else {
@@ -184,7 +189,8 @@ int main()
             DrawProtag();
 
             // NOTE: rectangle to debug description window
-            // al_draw_filled_rectangle(350, 125, 450, 200, al_map_rgba(0, 100, 0, 200));
+            // al_draw_filled_rectangle(350, 125, 450, 200, al_map_rgba(0, 100, 0,
+            // 200));
             if (show_desc) {
                 InitDescBox(325, 100, "A lone bus stop.");
             }
@@ -212,15 +218,17 @@ int main()
     for (int i = 0; i < npc[speaker]->num_topic; i++) {
         free(npc[speaker]->topics[i].topic);
         free(npc[speaker]->topics[i].text);
-        // NOTE: in case of error, put (char *) casting before both
-        // free(npc[speaker]... etc.
     }
     free(npc[speaker]->topics);
     free(npc[speaker]);
+
     tmx_map_free(map);
     ExplodeFont();
     BitmapExplode();
-    if (cursor) al_destroy_mouse_cursor(cursor);
+    if (cursors.normal) al_destroy_mouse_cursor(cursors.normal);
+    if (cursors.view) al_destroy_mouse_cursor(cursors.view);
+    if (cursors.aim) al_destroy_mouse_cursor(cursors.aim);
+    if (cursors.clicking) al_destroy_mouse_cursor(cursors.clicking);
     al_destroy_event_queue(queue);
     al_destroy_timer(timer);
     al_destroy_display(disp);
@@ -236,6 +244,7 @@ int main()
 //    Return:   void
 //
 //    NOTE: this functions contains every keyboard operation.
+//    TODO: optimize it to contain only input stuff.
 //
 //==========================================================================
 
@@ -250,22 +259,26 @@ void KeyboardOn()
 
     // Cursor Bitmap Changer
     if (ev.type == ALLEGRO_EVENT_KEY_DOWN) {
-        if (keys[ALLEGRO_KEY_T]) {
-            if (cursor) al_destroy_mouse_cursor(cursor);
-            cursor = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
-            al_set_mouse_cursor(disp, cursor);
-            current_cursor = CURSOR_TARGET;
-            dlg_open       = false;
-        } else if (keys[ALLEGRO_KEY_H]) {
-            if (cursor) al_destroy_mouse_cursor(cursor);
-            cursor = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
-            al_set_mouse_cursor(disp, cursor);
-            current_cursor = CURSOR_NORMAL;
-        } else if (keys[ALLEGRO_KEY_E]) {
-            if (cursor) al_destroy_mouse_cursor(cursor);
-            cursor = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
-            al_set_mouse_cursor(disp, cursor);
-            current_cursor = CURSOR_EYE;
+        if (keys[ALLEGRO_KEY_T]) {          // NOTE: target mode
+            chosen_cursor = cursors.aim;    // the cursor bitmap is changed
+            cursor_flag   = CURSOR_TARGET;  // flagging the current cursor
+            if (dlg_open) dlg_open = false; // doesn't work during chat mode
+            if (!mouse_animating) {         // doesn't work during cursor click
+                current_cursor = chosen_cursor;
+                al_set_mouse_cursor(disp, current_cursor);
+            }
+        } else if (keys[ALLEGRO_KEY_H]) { // NOTE: hand/normal mode
+            chosen_cursor = cursors.normal;
+            cursor_flag   = CURSOR_NORMAL;
+            al_set_mouse_cursor(disp, current_cursor);
+        } else if (keys[ALLEGRO_KEY_E]) { // NOTE: eye/view mode
+            chosen_cursor = cursors.view;
+            cursor_flag   = CURSOR_EYE;
+            if (dlg_open) dlg_open = false;
+            if (!mouse_animating) {
+                current_cursor = chosen_cursor;
+                al_set_mouse_cursor(disp, current_cursor);
+            }
         }
     }
 
@@ -306,6 +319,7 @@ void KeyboardOn()
 //    Return:   void
 //
 //    NOTE: this function contains every mouse operation.
+//    TODO: optimize it to contain only input stuff.
 //
 //==========================================================================
 
@@ -322,14 +336,14 @@ void MouseOn()
         mouse[ev.mouse.button] = true;
 
         // checks if eye cursor click on the object
-        if (current_cursor == CURSOR_EYE && mouse[1]) {
+        if (chosen_cursor == cursors.view && mouse[1]) {
             int rect_x = 350, rect_y = 125;
             int rect_w = rect_x + 100, rect_h = rect_y + 75;
 
             // finds the collisin to trigger InitDescBox()
             if (mouse_x >= rect_x && mouse_x <= rect_w && mouse_y >= rect_y &&
                 mouse_y <= rect_h) {
-                show_desc     = true;
+                show_desc = true;
                 // debugger below
                 printf("Apareceu a caixa!\n");
             }
@@ -339,9 +353,13 @@ void MouseOn()
     }
 
     // Click Animation
-    if (mouse[1] && current_cursor == CURSOR_NORMAL) {
+    if (mouse[1] && chosen_cursor == cursors.normal) {
         mouse_animating = true;
         anim_timer      = al_get_time();
+        if (cursors.clicking) {
+            current_cursor = cursors.clicking;
+            al_set_mouse_cursor(disp, current_cursor);
+        }
     }
 
     // Dialogue Interaction
@@ -387,4 +405,39 @@ void MouseOn()
             }
         }
     }
+}
+
+//==========================================================================
+//
+//    InitCursor
+//
+//    Argument: ALLEGRO_DISPLAY *disp    - linker for cursor to the display
+//    Return:   bool
+//
+//==========================================================================
+
+bool InitCursor(ALLEGRO_DISPLAY *disp)
+{
+    if (!cursors.eye_bmp || !cursors.mouse_bmp || !cursors.click_bmp ||
+        !cursors.target_bmp) {
+        perror("Fail to load cursor bitmap\n");
+        return false;
+    }
+
+    cursors.normal   = al_create_mouse_cursor(cursors.mouse_bmp, 0, 0);
+    cursors.clicking = al_create_mouse_cursor(cursors.click_bmp, 0, 0);
+    cursors.aim      = al_create_mouse_cursor(cursors.target_bmp, 0, 0);
+    cursors.view     = al_create_mouse_cursor(cursors.eye_bmp, 0, 0);
+    if (!cursors.normal || !cursors.clicking || !cursors.aim || !cursors.view) {
+        fprintf(stderr, "Error: fail to to create mouse cursor!\n");
+        return false;
+    }
+
+    chosen_cursor  = cursors.normal;
+    cursor_flag    = CURSOR_NORMAL;
+    current_cursor = chosen_cursor;
+    al_set_mouse_cursor(disp, current_cursor);
+    al_show_mouse_cursor(disp);
+
+    return true;
 }

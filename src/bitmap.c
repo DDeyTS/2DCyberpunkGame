@@ -3,7 +3,7 @@
 //** File: bitmap.c (CyberSP Project)
 //** Purpose: Sprite handling (animation, movement)
 //**
-//** Last Update: 23-08-2025 15:09
+//** Last Update: 24-08-2025 23:45
 //** Author: DDeyTS
 //**
 //**************************************************************************
@@ -16,6 +16,7 @@
 // EXTERNAL DATA DECLARATIONS ///////////////////////////////////////////////
 
 SpriteSheetInfo spr, ent[NUM_ENTITY];
+ALLEGRO_BITMAP *chatbox, *protagonist, *chatbox_light = NULL;
 
 // PRIVATE DATA DEFINITIONS /////////////////////////////////////////////////
 
@@ -32,49 +33,29 @@ static int reset_frame = 0;
 //
 //==========================================================================
 
-void InitBitmap()
+void InitBitmap(void)
 {
-    spr.protag = al_load_bitmap("sprites/regis_spritesheet.png");
-    if (!spr.protag) {
-        perror("Fail to load spr.protag!\n");
-        exit(1);
-    }
+    spr.protag  = al_load_bitmap("sprites/regis_spritesheet.png");
     protagonist = al_load_bitmap("portraits/regis_face.png");
-    if (!protagonist) {
-        perror("Fail to load protagonist's face!\n");
+    if (!spr.protag || !protagonist) {
+        perror("Fail to load protagonist bitmap!\n");
         exit(1);
     }
 
-    chatbox = al_load_bitmap("sprites/chatbox_sprite.png");
-    if (!chatbox) {
-        perror("Fail to load chatbox!\n");
-        exit(1);
-    }
-
-    cursors.mouse_bmp = al_load_bitmap("sprites/handcursor_sprite.png");
-    if (!cursors.mouse_bmp) {
-        perror("Fail to load mouse cursor!\n");
-        exit(1);
-    }
-    cursors.click_bmp = al_load_bitmap("sprites/handcursor_click_sprite.png");
-    if (!cursors.click_bmp) {
-        perror("Fail to load mouse cursor clicking on frame!\n");
-        exit(1);
-    }
-    cursors.target_bmp = al_load_bitmap("sprites/target_sprite.png");
-    if (!cursors.target_bmp) {
-        perror("Fail to load target cursor!\n");
-        exit(1);
-    }
-    cursors.eye_bmp = al_load_bitmap("sprites/eye_cursor.png");
-    if (!cursors.eye_bmp) {
-        perror("Fail to load eye cursor\n");
-        exit(1);
-    }
-
+    chatbox       = al_load_bitmap("sprites/chatbox_sprite.png");
     chatbox_light = al_load_bitmap("sprites/signal_light_chatbox_spritesheet.png");
-    if (!chatbox_light) {
-        perror("Fail to load little computer light!\n");
+    if (!chatbox || !chatbox_light) {
+        perror("Fail to load chatbox bitmap!\n");
+        exit(1);
+    }
+
+    cursors.mouse_bmp  = al_load_bitmap("sprites/handcursor_sprite.png");
+    cursors.click_bmp  = al_load_bitmap("sprites/handcursor_click_sprite.png");
+    cursors.target_bmp = al_load_bitmap("sprites/target_sprite.png");
+    cursors.eye_bmp    = al_load_bitmap("sprites/eye_cursor.png");
+    if (!cursors.eye_bmp || !cursors.mouse_bmp || !cursors.click_bmp ||
+        !cursors.target_bmp) {
+        perror("Fail to load cursor bitmap\n");
         exit(1);
     }
 }
@@ -90,7 +71,7 @@ void InitBitmap()
 //
 //==========================================================================
 
-void BitmapExplode()
+void BitmapExplode(void)
 {
     al_destroy_bitmap(spr.protag);
     al_destroy_bitmap(chatbox);
@@ -115,7 +96,7 @@ void BitmapExplode()
 //
 //==========================================================================
 
-void DrawProtag()
+void DrawProtag(void)
 {
     al_draw_scaled_bitmap(spr.protag, spr.frame_w, spr.frame_h, 16, 24, spr.px,
                           spr.py, 32, 48, 0);
